@@ -83,6 +83,12 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 	return treeNode;
 }
 
+bool spKDTreeNodeIsLeaf(SPKDTreeNode treeNode) {
+	if (treeNode == NULL) {
+		return false;
+	}
+	return (treeNode->dim == -1 && treeNode->medianVal == 0 && treeNode->rightChild == NULL && treeNode->leftChild == NULL);
+}
 
 int spKDTreeNodeGetDimension(SPKDTreeNode treeNode) {
 	if (treeNode == NULL) return -1;

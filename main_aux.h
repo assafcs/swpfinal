@@ -14,6 +14,8 @@ extern "C" {
 #include "SPKDTree.h"
 }
 
+#include "SPImageProc.h"
+
 typedef enum sp_database_creation_msg_t {
 	SP_DATABASE_CREATION_FEATURES_CONFIGUATION_ERROR,
 	SP_DATABASE_CREATION_FEATURES_EXTRACTION_ERROR,

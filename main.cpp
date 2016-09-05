@@ -26,7 +26,7 @@ extern "C" {
 
 #define LINE_MAX_SIZE 1024
 #define QUERY_IMAGE_INPUT "Please enter an image path:\n"
-#define EXIT_MESSAGE "Exiting…\n"
+#define EXIT_MESSAGE "Exiting...\n"
 
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
 
@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
 
 		}
 	// TODO: free everything
+	}
 	printf(EXIT_MESSAGE);
 	return 0;
 }
