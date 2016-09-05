@@ -52,34 +52,34 @@ void destroyVariables(SPPoint *allFeatures, int totalFeaturesCount, char *imageP
 	free(featuresPath);
 }
 
-int loadNumberOfFeatures(FILE *featuresFile, SP_DATABASE_CREATION_MSG *msg) {
+int loadNumberOfFeatures(FILE *featuresFile, SP_SEARCH_TREE_CREATION_MSG *msg) {
 	char *numberOfFeaturesAsString = (char *) malloc((MAX_NUM_OF_FEATURES_STRING_LEN + 1) * sizeof(char));
 	if (numberOfFeaturesAsString == NULL) {
-		*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 		return -1;
 	}
 	if (fgets(numberOfFeaturesAsString, MAX_NUM_OF_FEATURES_STRING_LEN, featuresFile) == NULL) {
 		free(numberOfFeaturesAsString);
-		*msg = SP_DATABASE_CREATION_LOAD_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 		return -1;
 	}
 	int numberOfFeatures = atoi(numberOfFeaturesAsString);
 
 	free(numberOfFeaturesAsString);
-	*msg = (numberOfFeatures == 0) ? SP_DATABASE_CREATION_LOAD_ERROR : SP_DATABASE_CREATION_SUCCESS;
+	*msg = (numberOfFeatures == 0) ? SP_SEARCH_TREE_CREATION_LOAD_ERROR : SP_SEARCH_TREE_CREATION_SUCCESS;
 	return numberOfFeatures;
 }
 
-SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_DATABASE_CREATION_MSG *msg) {
+SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_SEARCH_TREE_CREATION_MSG *msg) {
 	int maxFeatureStringLen = (MAX_FEATURE_COORDINATE_STRING_LEN + 1) * expectedDimension;
 	char *featureCoordinatesString = (char *) malloc((maxFeatureStringLen + 1) * sizeof(char));
 	if (featureCoordinatesString == NULL) {
-		*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
 	}
 	if (fgets(featureCoordinatesString, maxFeatureStringLen, featuresFile) == NULL) {
 		free(featureCoordinatesString);
-		*msg = SP_DATABASE_CREATION_LOAD_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 		return NULL;
 	}
 
@@ -90,7 +90,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_DAT
 
 	if (splitResult == NULL || numberOfCoordinates != expectedDimension) {
 		freeStringsArray(splitResult, numberOfCoordinates);
-		*msg = SP_DATABASE_CREATION_LOAD_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 		return NULL;
 	}
 
@@ -100,7 +100,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_DAT
 		if (featureCoordinate == 0 && strcmp(splitResult[i], "0") != 0) {
 			free(data);
 			freeStringsArray(splitResult, numberOfCoordinates);
-			*msg = SP_DATABASE_CREATION_LOAD_ERROR;
+			*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 			return NULL;
 		}
 		data[i] = featureCoordinate;
@@ -108,19 +108,19 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_DAT
 	SPPoint feature = spPointCreate(data, numberOfCoordinates, index);
 	free(data);
 	freeStringsArray(splitResult, numberOfCoordinates);
-	*msg = SP_DATABASE_CREATION_SUCCESS;
+	*msg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	return feature;
 }
 
 SPPoint *loadFeatures(const char *filePath, int index, int expectedFeatureDimension, int *numOfFeaturesLoaded,
-		SP_DATABASE_CREATION_MSG *msg) {
+		SP_SEARCH_TREE_CREATION_MSG *msg) {
 	FILE *featuresFile = fopen(filePath, "r");
 	if (featuresFile == NULL) {
-		*msg = SP_DATABASE_CREATION_FEATURE_FILE_MISSING;
+		*msg = SP_SEARCH_TREE_CREATION_FEATURE_FILE_MISSING;
 		return NULL;
 	}
 	int numberOfFeatures = loadNumberOfFeatures(featuresFile, msg);
-	if (*msg != SP_DATABASE_CREATION_SUCCESS) {
+	if (*msg != SP_SEARCH_TREE_CREATION_SUCCESS) {
 		fclose(featuresFile);
 		return NULL;
 	}
@@ -128,12 +128,12 @@ SPPoint *loadFeatures(const char *filePath, int index, int expectedFeatureDimens
 	SPPoint *features = (SPPoint *) malloc(numberOfFeatures * sizeof(SPPoint));
 	if (features == NULL) {
 		fclose(featuresFile);
-		*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
 	}
 	for (int i = 0; i < numberOfFeatures; i++) {
 		SPPoint feature = loadFeature(featuresFile, expectedFeatureDimension, index, msg);
-		if (*msg != SP_DATABASE_CREATION_SUCCESS) {
+		if (*msg != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			destroyVariables(features, i, NULL, NULL);
 			fclose(featuresFile);
 			return NULL;
@@ -142,26 +142,26 @@ SPPoint *loadFeatures(const char *filePath, int index, int expectedFeatureDimens
 	}
 
 	fclose(featuresFile);
-	*msg = SP_DATABASE_CREATION_SUCCESS;
+	*msg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	*numOfFeaturesLoaded = numberOfFeatures;
 	return features;
 
 }
 
-SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CREATION_MSG *msg) {
+SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_CREATION_MSG *msg) {
 	char *featuresPath = NULL;
 	SPPoint *allFeatures = NULL;
 
 	SP_CONFIG_MSG resultMSG;
 	int numOfImages = spConfigGetNumOfImages(config, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
-		*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
 	}
 
 	int expectedDimension = spConfigGetPCADim(config, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
-		*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
 	}
 
@@ -169,7 +169,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CRE
 	featuresPath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));
 	if (allFeatures == NULL || featuresPath == NULL) {
 		destroyVariables(allFeatures, 0, NULL, featuresPath);
-		*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
 	}
 
@@ -179,11 +179,11 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CRE
 	for (int imageIndex = 0; imageIndex < numOfImages; imageIndex++) {
 		if (spConfigGetImageFeaturesPath(featuresPath, config, imageIndex) != SP_CONFIG_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
-			*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+			*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 			return NULL;
 		}
 		SPPoint *features = loadFeatures(featuresPath, imageIndex, expectedDimension, &numOfFeaturesLoaded, msg);
-		if (*msg != SP_DATABASE_CREATION_SUCCESS) {
+		if (*msg != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
 			return NULL;
 		}
@@ -194,7 +194,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CRE
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
 			freePointsArray(features, numOfFeaturesLoaded);
-			*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}
 
@@ -205,18 +205,18 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CRE
 
 	free(featuresPath);
 	*numberOfFeatures = totalFeaturesCount;
-	*msg = SP_DATABASE_CREATION_SUCCESS;
+	*msg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	return allFeatures;
 }
 
-SP_DATABASE_CREATION_MSG writeFeature(FILE* featureFile, SPPoint feature) {
+SP_SEARCH_TREE_CREATION_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 	if (featureFile == NULL) {
-		return SP_DATABASE_CREATION_INVALID_ARGUMENT;
+		return SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT;
 	}
 	int dim = spPointGetDimension(feature);
 	char **pointCoordinates = (char **) malloc(dim * sizeof(*pointCoordinates));
 	if (pointCoordinates == NULL) {
-		return SP_DATABASE_CREATION_ALLOC_FAIL;
+		return SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 	}
 	for (int i = 0; i < dim; i++) {
 		double coordinate = spPointGetAxisCoor(feature, i);
@@ -227,17 +227,17 @@ SP_DATABASE_CREATION_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 				free(pointCoordinates[i]);
 			}
 			free(pointCoordinates);
-			return SP_DATABASE_CREATION_INVALID_ARGUMENT;
+			return SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT;
 		}
 		pointCoordinates[i] = pointCoordinate;
 	}
-	SP_DATABASE_CREATION_MSG returnMsg = SP_DATABASE_CREATION_SUCCESS;
+	SP_SEARCH_TREE_CREATION_MSG returnMsg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	char *joinedCoordinates = spUtilStrJoin(pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
 	if (joinedCoordinates == NULL) {
-		returnMsg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		returnMsg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 	} else {
 		if (fputs(joinedCoordinates, featureFile) == EOF || fputc('\n', featureFile) == EOF) {
-			returnMsg = SP_DATABASE_CREATION_WRITE_ERROR;
+			returnMsg = SP_SEARCH_TREE_CREATION_WRITE_ERROR;
 		}
 	}
 	free(joinedCoordinates);
@@ -248,48 +248,48 @@ SP_DATABASE_CREATION_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 	return returnMsg;
 }
 
-SP_DATABASE_CREATION_MSG writeFeatures(char *filePath, SPPoint *features, int numOfFeatures) {
+SP_SEARCH_TREE_CREATION_MSG writeFeatures(char *filePath, SPPoint *features, int numOfFeatures) {
 	if (numOfFeatures == 0) {
-		return SP_DATABASE_CREATION_INVALID_ARGUMENT;
+		return SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT;
 	}
 	char numOfFeaturesAsString[MAX_NUM_OF_FEATURES_STRING_LEN];
 	int numberOfChars = sprintf(numOfFeaturesAsString, "%d", numOfFeatures);
 	if (numberOfChars == 0 || numberOfChars > MAX_NUM_OF_FEATURES_STRING_LEN - 1) {
-		return SP_DATABASE_CREATION_INVALID_ARGUMENT;
+		return SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT;
 	}
 	FILE *featuresFile = fopen(filePath, "w");
 	if (featuresFile == NULL) {
-		return SP_DATABASE_CREATION_WRITE_ERROR;
+		return SP_SEARCH_TREE_CREATION_WRITE_ERROR;
 	}
 
 	if (fputs(numOfFeaturesAsString, featuresFile) == EOF || fputc('\n', featuresFile) == EOF) {
 		fclose(featuresFile);
 		remove(filePath);
-		return SP_DATABASE_CREATION_WRITE_ERROR;
+		return SP_SEARCH_TREE_CREATION_WRITE_ERROR;
 	}
 
-	SP_DATABASE_CREATION_MSG msg;
+	SP_SEARCH_TREE_CREATION_MSG msg;
 	for (int i = 0; i < numOfFeatures; i++) {
 		SPPoint feature = features[i];
 		msg = writeFeature(featuresFile, feature);
-		if (msg != SP_DATABASE_CREATION_SUCCESS) {
+		if (msg != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			fclose(featuresFile);
 			remove(filePath);
 			return msg;
 		}
 	}
 	fclose(featuresFile);
-	return SP_DATABASE_CREATION_SUCCESS;
+	return SP_SEARCH_TREE_CREATION_SUCCESS;
 }
 
-SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CREATION_MSG *msg) {
+SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_CREATION_MSG *msg) {
 	char *imagePath = NULL, *featuresPath = NULL;
 	SPPoint *allFeatures = NULL;
 
 	SP_CONFIG_MSG resultMSG;
 	int numOfImages = spConfigGetNumOfImages(config, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
-		*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
 	}
 
@@ -300,7 +300,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_
 	featuresPath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));
 	if (allFeatures == NULL || imagePath == NULL || featuresPath == NULL) {
 		destroyVariables(allFeatures, 0, imagePath, featuresPath);
-		*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+		*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
 	}
 	int numOfFeaturesExtracted;
@@ -309,20 +309,20 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_
 		if (spConfigGetImagePath(imagePath, config, imageIndex) != SP_CONFIG_SUCCESS ||
 				spConfigGetImageFeaturesPath(featuresPath, config, imageIndex) != SP_CONFIG_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+			*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 			return NULL;
 		}
 		SPPoint *features = ip.getImageFeatures(imagePath, imageIndex, &numOfFeaturesExtracted);
 		if (features == NULL || numOfFeaturesExtracted <= 0) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			*msg = SP_DATABASE_CREATION_FEATURES_EXTRACTION_ERROR;
+			*msg = SP_SEARCH_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
 			return NULL;
 		}
 
 		totalFeaturesCount += numOfFeaturesExtracted;
-		SP_DATABASE_CREATION_MSG creationMSG = writeFeatures(featuresPath, features, numOfFeaturesExtracted);
+		SP_SEARCH_TREE_CREATION_MSG creationMSG = writeFeatures(featuresPath, features, numOfFeaturesExtracted);
 
-		if (creationMSG != SP_DATABASE_CREATION_SUCCESS) {
+		if (creationMSG != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
 			freePointsArray(features, numOfFeaturesExtracted);
 			*msg = creationMSG;
@@ -333,7 +333,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
 			freePointsArray(features, numOfFeaturesExtracted);
-			*msg = SP_DATABASE_CREATION_ALLOC_FAIL;
+			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}
 
@@ -345,31 +345,31 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_
 	free(imagePath);
 	free(featuresPath);
 	*numberOfFeatures = totalFeaturesCount;
-	*msg = SP_DATABASE_CREATION_SUCCESS;
+	*msg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	return allFeatures;
 }
 
-SPPoint *getAllFeatures(SPConfig config, int *numberOfFeatures, SP_DATABASE_CREATION_MSG *msg) {
+SPPoint *getAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_CREATION_MSG *msg) {
 
 	if (config == NULL) {
-		*msg = SP_DATABASE_CREATION_INVALID_ARGUMENT;
+		*msg = SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT;
 		return NULL;
 	}
 	SP_CONFIG_MSG resultMSG;
 	bool extractionMode = spConfigIsExtractionMode(config, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
-		*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
 	}
 	return extractionMode ? extractAllFeatures(config, numberOfFeatures, msg) : loadAllFeatures(config, numberOfFeatures, msg);
 }
 
-SPKDTreeNode createImagesSearchTree(const SPConfig config, SP_DATABASE_CREATION_MSG *msg) {
+SPKDTreeNode createImagesSearchTree(const SPConfig config, SP_SEARCH_TREE_CREATION_MSG *msg) {
 	SPPoint *allFeatures = NULL;
 
 	int totalFeaturesCount;
 	allFeatures = getAllFeatures(config, &totalFeaturesCount, msg);
-	if (allFeatures == NULL || totalFeaturesCount <= 0 || *msg != SP_DATABASE_CREATION_SUCCESS) {
+	if (allFeatures == NULL || totalFeaturesCount <= 0 || *msg != SP_SEARCH_TREE_CREATION_SUCCESS) {
 		free(allFeatures);
 		return NULL;
 	}
@@ -377,7 +377,7 @@ SPKDTreeNode createImagesSearchTree(const SPConfig config, SP_DATABASE_CREATION_
 	SPKDArray kdArray = spKDArrayInit(allFeatures, totalFeaturesCount);
 	if (kdArray == NULL) {
 		free(allFeatures);
-		*msg = SP_DATABASE_CREATION_FEATURES_EXTRACTION_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
 		return NULL;
 	}
 	SP_CONFIG_MSG configMsg;
@@ -385,14 +385,14 @@ SPKDTreeNode createImagesSearchTree(const SPConfig config, SP_DATABASE_CREATION_
 	if (configMsg != SP_CONFIG_SUCCESS) {
 		spKDArrayDestroy(kdArray);
 		free(allFeatures);
-		*msg = SP_DATABASE_CREATION_CONFIG_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
 	}
 	SPKDTreeNode tree = spKDTreeBuild(kdArray, splitMethod);
 	if (tree == NULL) {
 		spKDArrayDestroy(kdArray);
 		free(allFeatures);
-		*msg = SP_DATABASE_CREATION_FEATURES_EXTRACTION_ERROR;
+		*msg = SP_SEARCH_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
 		return NULL;
 	}
 	return tree;
