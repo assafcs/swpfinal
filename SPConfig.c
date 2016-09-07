@@ -14,8 +14,8 @@
 #include <string.h>
 
 #define CONFIG_FILE_COULD_NOT_BE_OPENED_PREFIX "The configuration file "
-#define CONFIG_FILE_COULD_NOT_BE_OPENED_SUFFIX " couldn’t be open\n"
-#define DEFAULT_CONFIG_FILE_COULD_NOT_BE_OPENED "The default configuration file spcbir.config couldn’t be open\n"
+#define CONFIG_FILE_COULD_NOT_BE_OPENED_SUFFIX " couldn't be open\n"
+#define DEFAULT_CONFIG_FILE_COULD_NOT_BE_OPENED "The default configuration file spcbir.config couldn't be open\n"
 
 #define MESSAGE_INVALID_VALUE_CONSTRAINT_NOT_MET "Invalid value - constraint not met"
 #define MESSAGE_INVALID_CONF_LINE "Invalid configuration line"
@@ -159,22 +159,22 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 	if ((requiredFieldsBitMask & IMAGES_DIRECTORY_BIT_MASK) == 0x00) {
 		*msg = SP_CONFIG_MISSING_DIR;
 		sprintf(errorMessage, "%s%s%s", MESSAGE_PARAM_IS_NOT_SET_PREFIX, "imagesDirectory", MESSAGE_PARAM_IS_NOT_SET_SUFFIX);
-		printErrorMsg(filename, ++lineNum, errorMessage);
+		printRErrorMsg(filename, ++lineNum, errorMessage);
 		returnValue = NULL;
 	} else if ((requiredFieldsBitMask & IMAGES_PREFIX_BIT_MASK) == 0x00) {
 		*msg = SP_CONFIG_MISSING_PREFIX;
 		sprintf(errorMessage, "%s%s%s", MESSAGE_PARAM_IS_NOT_SET_PREFIX, "imagesPrefix", MESSAGE_PARAM_IS_NOT_SET_SUFFIX);
-		printErrorMsg(filename, ++lineNum, errorMessage);
+		printRErrorMsg(filename, ++lineNum, errorMessage);
 		returnValue = NULL;
 	} else if ((requiredFieldsBitMask & IMAGES_SUFFIX_BIT_MASK) == 0x00) {
 		*msg = SP_CONFIG_MISSING_SUFFIX;
 		sprintf(errorMessage, "%s%s%s", MESSAGE_PARAM_IS_NOT_SET_PREFIX, "imagesSuffix", MESSAGE_PARAM_IS_NOT_SET_SUFFIX);
-		printErrorMsg(filename, ++lineNum, errorMessage);
+		printRErrorMsg(filename, ++lineNum, errorMessage);
 		returnValue = NULL;
 	} else if ((requiredFieldsBitMask & NUM_IMAGES_BIT_MASK) == 0x00) {
 		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
 		sprintf(errorMessage, "%s%s%s", MESSAGE_PARAM_IS_NOT_SET_PREFIX, "spNumOfImages", MESSAGE_PARAM_IS_NOT_SET_SUFFIX);
-		printErrorMsg(filename, ++lineNum, errorMessage);
+		printRErrorMsg(filename, ++lineNum, errorMessage);
 		returnValue = NULL;
 	}
 

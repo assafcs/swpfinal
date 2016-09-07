@@ -15,6 +15,8 @@ typedef struct sp_kd_tree_node_t *SPKDTreeNode;
 
 SPKDTreeNode spKDTreeBuild(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod);
 
+bool spKDTreeNodeIsLeaf(SPKDTreeNode treeNode);
+
 int spKDTreeNodeGetDimension(SPKDTreeNode treeNode);
 
 double spKDTreeNodeGetMedianValue(SPKDTreeNode treeNode);

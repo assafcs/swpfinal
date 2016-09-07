@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
 	ImageProc ip = ImageProc(config);
 
-	SP_DATABASE_CREATION_MSG msg;
+	SP_SEARCH_TREE_CREATION_MSG msg;
 
 	SPKDTreeNode searchTree = createImagesSearchTree(config, &msg);
 
@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
 
 		}
 	// TODO: free everything
+	}
 	printf(EXIT_MESSAGE);
 	return 0;
 }
