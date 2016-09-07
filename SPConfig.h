@@ -6,6 +6,7 @@
 #include "SPLogger.h"
 
 #define DEFAULT_CONFIG_FILENAME "spcbir.config"
+#define LINE_MAX_SIZE 1024
 
 /**
  * A data-structure which is used for configuring the system.
@@ -200,6 +201,9 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 char *spConfigGetLoggerFilename(const SPConfig config);
 
 bool spConfigGetMinimalGuiPreference(const SPConfig config);
+
+char *spConfigGetSpecificImagePath(const SPConfig config, int index);
+
 
 SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config);
 

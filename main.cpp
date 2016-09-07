@@ -24,9 +24,8 @@ extern "C" {
 
 #define INVALID_COMMAND_LINE_TEXT "Invalid command line : use -c <config_filename>\n"
 
-#define LINE_MAX_SIZE 1024
 #define QUERY_IMAGE_INPUT "Please enter an image path:\n"
-#define EXIT_MESSAGE "Exiting…\n"
+#define EXIT_MESSAGE "Exiting...\n"
 
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
 
@@ -79,11 +78,10 @@ int main(int argc, char *argv[]) {
 			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
 			printf("Results: %d \n ", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
-				printf("%d", similarImages[i]);
 				if (spConfigGetMinimalGuiPreference(config)){
 					ip.showImage(imageQueryPath);
 				} else {
-					// TODO: print the results images path
+					printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
 				}
 			}
 

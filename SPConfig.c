@@ -24,7 +24,6 @@
 #define MAXIMUM_R_ERROR_MSG_LENGTH 40
 
 
-
 /*** Types Declarations ***/
 
 typedef enum sp_parameter_parse_msg_t {
@@ -613,8 +612,14 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config) {
 	return SP_CONFIG_SUCCESS;
 }
 
-bool spConfigGetMinimalGuiPreference(const SPConfig config){
+bool spConfigGetMinimalGuiPreference(const SPConfig config, int index){
 	return config->minimalGUI;
+}
+
+char *spConfigGetSpecificImagePath(const SPConfig config, int index){
+	char ret[LINE_MAX_SIZE];
+	sprintf(ret, "%s%s%d%s", config->imagesDirectory, config->imagesPrefix, index, config->imagesSuffix);
+	return ret;
 }
 
 char *spConfigGetLoggerFilename(const SPConfig config){
