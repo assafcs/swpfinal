@@ -74,12 +74,10 @@ int main(int argc, char *argv[]) {
 			if (!spConfigGetMinimalGuiPreference(config)){
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
-
 			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
-			printf("Results: %d \n ", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
 				if (spConfigGetMinimalGuiPreference(config)){
-					ip.showImage(imageQueryPath);
+					ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
 				} else {
 					printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
 				}
