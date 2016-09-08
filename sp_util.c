@@ -11,6 +11,15 @@
 
 static const int TOKEN_MAX_LEN = 100;
 
+char *strDuplicate(char *str) {
+	char *duplicate = malloc((strlen(str) + 1) * sizeof(char));
+	if (duplicate == NULL) {
+		return NULL;
+	}
+	strcpy(duplicate, str);
+	return duplicate;
+}
+
 char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
 
 	int i, j, tokenIdx, resultIdx, count = 0, strLen = strlen(str);
@@ -45,7 +54,7 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
     for (i = 0; i < strLen; i++) {
     	if (str[i] == delim) {
     		token[tokenIdx] = '\0';
-    		tokenDup = strdup(token);
+    		tokenDup = strDuplicate(token);
     		if (tokenDup == NULL) {
     			for (j = 0; j < i; j++) {
     				free(result[j]);
@@ -63,7 +72,7 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
     }
 
     token[tokenIdx] = '\0';
-    tokenDup = strdup(token);
+    tokenDup = strDuplicate(token);
     if (tokenDup == NULL) {
     	for (j = 0; j < i; j++) {
     		free(result[j]);

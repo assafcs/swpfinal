@@ -79,13 +79,14 @@ int main(int argc, char *argv[]) {
 			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
 			printf("Results: %d \n ", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
-				printf("%d", similarImages[i]);
+				printf("%d ", similarImages[i]);
 				if (spConfigGetMinimalGuiPreference(config)){
 					ip.showImage(imageQueryPath);
 				} else {
 					// TODO: print the results images path
 				}
 			}
+			printf("\n");
 
 		}
 	// TODO: free everything

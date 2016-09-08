@@ -440,7 +440,8 @@ int *findSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
 	for (int i = 0; i < numOfFeaturesExtracted; i++) {
 		SPPoint feature = features[i];
 		spKNearestNeighbours(searchTree, queue, feature);
-		for (int j = 0; j < spBPQueueSize(queue); j++) {
+		int queueSize = spBPQueueSize(queue);
+		for (int j = 0; j < queueSize; j++) {
 			SPListElement listElement = spBPQueuePeek(queue);
 			int index = spListElementGetIndex(listElement);
 			hitInfos[index].hits++;

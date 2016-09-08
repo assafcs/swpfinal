@@ -33,7 +33,7 @@ void spKNearestNeighbours(SPKDTreeNode tree, SPBPQueue queue, SPPoint point) {
 	}
 	maxQueueValue = spBPQueueMaxValue(queue);
 
-	if (!spBPQueueIsFull(queue) || fabs(pointValue - nodeMedianValue) < maxQueueValue) {
+	if (!spBPQueueIsFull(queue) || pow(pointValue - nodeMedianValue, 2) < maxQueueValue) {
 		if (pointValue <= nodeMedianValue) {
 			spKNearestNeighbours(spKDTreeNodeGetRightChild(tree), queue, point);
 		} else {
