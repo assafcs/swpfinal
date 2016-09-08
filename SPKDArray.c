@@ -9,47 +9,52 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
+/*** Inner implementation type declarations ***/
+
+/** Structure containing both index and value - used for sorting. */
 typedef struct index_to_value {
 	int index;
 	double value;
 } IndexToValue;
 
+/** Structure containing index and array identifier - used for array split. */
+typedef struct split_index_mapping {
+	int arrIdentifier; // 0 is left, 1 is right
+	int index;
+} SplitIndexMapping;
+
+
+/*** Type declarations ***/
+
+/** Structure containing the kdArray data. */
 struct sp_kd_array_t {
 	int **indicesMatrix;
 	SPPoint* pointsArray;
 	int size;
 };
 
+/** Structure containing the split result data. */
 struct sp_split_result_t {
 	SPKDArray left;
 	SPKDArray right;
 };
 
-typedef struct split_index_mapping {
-	int arrIdentifier; // 0 is left, 1 is right
-	int index;
-} SplitIndexMapping;
 
-SPPoint *copyPointsArray(SPPoint *pointsArray, int size);
-int **createIndicesMatrix(SPPoint *pointsArray, int size, int pointsDimenstion);
-void freeIndicesMatrix(int **indicesMatrix, int rows);
+/*** Private Methods ***/
 
-int **spKDArrayGetIndicesMatrix(SPKDArray kdArray) {
-	if (kdArray == NULL) return NULL;
-	return kdArray->indicesMatrix;
-}
-
-SPPoint *spKDArrayGetPointsArray(SPKDArray kdArray) {
-	if (kdArray == NULL) return NULL;
-	return kdArray->pointsArray;
-}
-
-int spKDArrayGetSize(SPKDArray kdArray) {
-	if (kdArray == NULL) return -1;
-	return kdArray->size;
-}
-
+/**
+ * Compare method between two IndexToValue elements.
+ *
+ * @param aIndexToValuePtr Pointer to the first IndexToValue element.
+ * @param bIndexToValuePtr Pointer to the second IndexToValue element.
+ *
+ * @return
+ * 	0 	- If the elements are considered equal
+ * 	-1 	- If the first element is smaller than the second.
+ * 	1 	- If the second element is smaller than the first
+ */
 int comparePointsCoodinates(const void *aIndexToValuePtr, const void *bIndexToValuePtr) {
 	IndexToValue *aIndexToValue = (IndexToValue *) aIndexToValuePtr;
 	IndexToValue *bIndexToValue = (IndexToValue *) bIndexToValuePtr;
@@ -59,6 +64,16 @@ int comparePointsCoodinates(const void *aIndexToValuePtr, const void *bIndexToVa
 	return (aIndexToValue->value < bIndexToValue->value) ? -1 : 1;
 }
 
+/**
+ * Returns the points' indices in the array sorted by the points' values on the given axis.
+ *
+ * @param pointsArray The array of points
+ * @param size The size of the points array
+ * @param axis The axis to sort by.
+ *
+ * @retrun
+ * 	Array of the points indices sorted by the points' values on the given axis.
+ */
 int *sortedIndices(SPPoint *pointsArray, int size, int axis) {
 	int i;
 	IndexToValue indexToValue;
@@ -79,6 +94,119 @@ int *sortedIndices(SPPoint *pointsArray, int size, int axis) {
 	free(indicesToValues);
 	return indicesArray;
 }
+
+/**
+ * Copies an array of points.
+ *
+ * @param pointsArray The array of points to copy.
+ * @param size The size of the array.
+ *
+ * @return
+ * 	A new copy of the points array.
+ */
+SPPoint *copyPointsArray(SPPoint *pointsArray, int size) {
+	int i;
+	SPPoint pointCopy;
+	SPPoint *arrCopy = (SPPoint *) malloc(sizeof(*pointsArray) * size);
+	if (arrCopy == NULL) {
+		return NULL;
+	}
+	for (i = 0; i < size; i++) {
+		pointCopy = spPointCopy(pointsArray[i]);
+		if (pointCopy == NULL) {
+			spKDArrayFreePointsArray(arrCopy, size);
+			return NULL;
+		}
+		arrCopy[i] = pointCopy;
+	}
+	return arrCopy;
+}
+
+/**
+ * Creates an indices matrix.
+ * Each row of the matrix contains the indices of the points, sorted by the points' values with respect to the proper coordinate.
+ *
+ * @param pointsArray The points array for which to create the indices matrix.
+ * @param size The size of the points array (The matrix column count)
+ * @param pointsDimension The dimension of the points (The matrix row count)
+ *
+ * @return
+ * 	The indices matrix - each row contains the indices of the points in the array,
+ * 	sorted by the points' values with respect to the proper coordinate.
+ */
+int **createIndicesMatrix(SPPoint *pointsArray, int size, int pointsDimension) {
+	int i, *axisIndices;
+	int **indicesMatrix = (int **) malloc(sizeof(*indicesMatrix) * pointsDimension);
+	if (indicesMatrix == NULL) {
+		return NULL;
+	}
+	for (i = 0; i < pointsDimension; i++) {
+		axisIndices = sortedIndices(pointsArray, size, i);
+		if (axisIndices == NULL) {
+			spKDArrayFreeIndicesMatrix(indicesMatrix, i);
+			return NULL;
+		}
+		indicesMatrix[i] = axisIndices;
+	}
+	return indicesMatrix;
+}
+
+/**
+ * Creates a copy of the given indices matrix.
+ *
+ * @param indicesMatrix The indices matrix to copy.
+ * @param size The number of columns in the matrix (the size of each row).
+ * @param pointsDimension The number of rows in the matrix.
+ *
+ * @return
+ * 	A copy of the given indices matrix.
+ */
+int **copyIndicesMatrix(int** indicesMatrix, int size, int pointsDimension) {
+	int i, *row;
+	if (indicesMatrix == NULL || size < 0 || pointsDimension < 0) {
+		return NULL;
+	}
+	int **indicesMatrixCopy = (int **) malloc(sizeof(*indicesMatrix) * pointsDimension);
+	if (indicesMatrixCopy == NULL) {
+		return NULL;
+	}
+	for (i = 0; i < pointsDimension; i++) {
+		indicesMatrixCopy[i] = (int *) malloc(sizeof(*row) * size);
+		if (indicesMatrixCopy[i] == NULL) {
+			spKDArrayFreeIndicesMatrix(indicesMatrix, i);
+			return NULL;
+		}
+		memcpy(indicesMatrixCopy[i], indicesMatrix[i], size * sizeof(int));
+	}
+	return indicesMatrixCopy;
+}
+
+/**
+ * Helper method to free the given variables.
+ *
+ * @param splitResult The SPKDArraySplitResult to destroy.
+ * @param indexMapping The SplitIndexMapping array to free.
+ */
+void freeSplitVariables(SPKDArraySplitResult splitResult, SplitIndexMapping *indexMapping) {
+	free(indexMapping);
+	spKDArraySplitResultDestroy(splitResult);
+}
+
+/**
+ * Helper method to fill the split result for a single point array.
+ *
+ * @param kdArr The single point kd-array to split.
+ * @param splitResult The split result to fill.
+ */
+void splitSingleItemArray(SPKDArray kdArr, SPKDArraySplitResult splitResult) {
+	if (kdArr == NULL || splitResult == NULL) {
+		return;
+	}
+	splitResult->right = NULL;
+	splitResult->left = spKDArrayCopy(kdArr);
+}
+
+/*** Public Methods ***/
 
 SPKDArray spKDArrayInit(SPPoint *arr, int size) {
 	if (arr == NULL || size <= 0) {
@@ -107,49 +235,39 @@ SPKDArray spKDArrayInit(SPPoint *arr, int size) {
 	return kdArray;
 }
 
-int **createIndicesMatrix(SPPoint *pointsArray, int size, int pointsDimension) {
-	int i;
-	int *axisIndices;
-	int **indicesMatrix = (int **) malloc(sizeof(*indicesMatrix) * pointsDimension);
-	if (indicesMatrix == NULL) {
+SPKDArray spKDArrayCopy(SPKDArray kdArr) {
+	if (kdArr == NULL) {
 		return NULL;
 	}
-	for (i = 0; i < pointsDimension; i++) {
-		axisIndices = sortedIndices(pointsArray, size, i);
-		if (axisIndices == NULL) {
-			freeIndicesMatrix(indicesMatrix, pointsDimension);
-			return NULL;
-		}
-		indicesMatrix[i] = axisIndices;
+	SPKDArray kdArrCopy = (SPKDArray) malloc(sizeof(*kdArrCopy));
+	if (kdArrCopy == NULL) {
+		return NULL;
 	}
-	return indicesMatrix;
+	kdArrCopy->size = spKDArrayGetSize(kdArr);
+	kdArrCopy->pointsArray = spKDArrayGetPointsArrayCopy(kdArr);
+	kdArrCopy->indicesMatrix = spKDArrayGetIndicesMatrixCopy(kdArr);
+	return kdArrCopy;
 }
 
-SPPoint *copyPointsArray(SPPoint *pointsArray, int size) {
-	int i;
-	SPPoint pointCopy;
-	SPPoint *arrCopy = (SPPoint *) malloc(sizeof(*pointsArray) * size);
-	if (arrCopy == NULL) {
-		return NULL;
+void spKDArrayDestroy(SPKDArray kdArray) {
+	if (kdArray == NULL) {
+		return;
 	}
-	for (i = 0; i < size; i++) {
-		pointCopy = spPointCopy(pointsArray[i]);
-		if (pointCopy == NULL) {
-			freePointsArray(arrCopy, size);
-			return NULL;
-		}
-		arrCopy[i] = pointCopy;
-	}
-	return arrCopy;
+	// Order here is important, since the dimension relies on the points array..
+	spKDArrayFreeIndicesMatrix(kdArray->indicesMatrix, spKDArrayGetPointsDimension(kdArray));
+	spKDArrayFreePointsArray(kdArray->pointsArray, kdArray->size);
+	free(kdArray);
 }
 
 SPKDArraySplitResult spKDArraySplit(SPKDArray kdArr, int coor) {
 	if (kdArr == NULL || coor < 0 || coor > spKDArrayGetPointsDimension(kdArr)) {
 		return NULL;
 	}
+
+	// Variables declarations
 	int i, j, currentIndex, leftPointIndex, rightPointIndex, currentArrIdentifier;
-	SPPoint pointCopy;
-	SPKDArray currentArr;
+	SPPoint pointCopy = NULL;
+	SPKDArray currentArr = NULL;
 	SplitIndexMapping currentIndexMapping;
 	int *leftIndices, *rightIndices, *currentPointIndex;
 	int pointsDimension = spKDArrayGetPointsDimension(kdArr);
@@ -157,45 +275,60 @@ SPKDArraySplitResult spKDArraySplit(SPKDArray kdArr, int coor) {
 	int **indicesMatrix = kdArr->indicesMatrix;
 	int *sortedIndices = indicesMatrix[coor];
 
-	SplitIndexMapping *indexMapping = (SplitIndexMapping *) malloc(size * sizeof(SplitIndexMapping));
-	if (indexMapping == NULL) {
+
+	// Create the split result
+	SPKDArraySplitResult splitResult = (SPKDArraySplitResult) malloc(sizeof(*splitResult));
+	if (splitResult == NULL) {
 		return NULL;
 	}
 
-	SPKDArraySplitResult splitResult = (SPKDArraySplitResult) malloc(sizeof(*splitResult));
+	// In case there is only one item in the array, return it as left
+	if (spKDArrayGetSize(kdArr) == 1) {
+		splitSingleItemArray(kdArr, splitResult);
+		return splitResult;
+	}
+
+	// Create the SplitIndexMapping used for the split logic
+	SplitIndexMapping *indexMapping = (SplitIndexMapping *) malloc(size * sizeof(SplitIndexMapping));
+	if (indexMapping == NULL) {
+		spKDArraySplitResultDestroy(splitResult);
+		return NULL;
+	}
+
+	// Allocate the left and right kd-arrays
 	splitResult->left = (SPKDArray) malloc(sizeof(*(splitResult->left)));
 	splitResult->right = (SPKDArray) malloc(sizeof(*(splitResult->right)));
 
 	if (splitResult->left == NULL || splitResult->right == NULL) {
-		free(indexMapping);
-		spKDArraySplitResultDestroy(splitResult);
+		freeSplitVariables(splitResult, indexMapping);
 		return NULL;
 	}
 
-	int leftCount = (int)ceil((double)kdArr->size / 2.0);
-	int rightCount = (int)floor((double)kdArr->size / 2.0);
+	// Calculate the number of items for left and right arrays.
+	splitResult->left->size = (int)ceil((double)kdArr->size / 2.0);
+	splitResult->right->size = (int)floor((double)kdArr->size / 2.0);
 
-	splitResult->left->size = leftCount;
-	splitResult->right->size = rightCount;
+	// Allocate the left and right point arrays.
+	splitResult->left->pointsArray = (SPPoint *) malloc(splitResult->left->size * sizeof(SPPoint));
+	splitResult->right->pointsArray = (SPPoint *) malloc(splitResult->right->size * sizeof(SPPoint));
 
-	splitResult->left->pointsArray = (SPPoint *) malloc(leftCount * sizeof(SPPoint));
-	splitResult->right->pointsArray = (SPPoint *) malloc(rightCount * sizeof(SPPoint));
-
+	// Allocate the left and right indices matrices
 	splitResult->left->indicesMatrix = (int **) malloc(pointsDimension * sizeof(int *));
 	splitResult->right->indicesMatrix = (int **) malloc(pointsDimension * sizeof(int *));
 
+	// Return NULL in case allocation failed
 	if (splitResult->left->pointsArray == NULL || splitResult->right->pointsArray == NULL
 			|| splitResult->left->indicesMatrix == NULL || splitResult->right->indicesMatrix == NULL) {
-		free(indexMapping);
-		spKDArraySplitResultDestroy(splitResult);
+		freeSplitVariables(splitResult, indexMapping);
 		return NULL;
 	}
 
+	// Create the index mapping and fill the points in the split result arrays.
 	leftPointIndex = 0;
 	rightPointIndex = 0;
 	for (i = 0; i < size; i++) {
 		currentIndex = sortedIndices[i];
-		if (i < leftCount) {
+		if (i < splitResult->left->size) {
 			currentArr = splitResult->left;
 			currentPointIndex = &leftPointIndex;
 			currentArrIdentifier = 0;
@@ -210,13 +343,13 @@ SPKDArraySplitResult spKDArraySplit(SPKDArray kdArr, int coor) {
 		(*currentPointIndex)++;
 	}
 
+	// Use the index mapping to create the indices matrices of the split result arrays.
 	for (i = 0; i < pointsDimension; i++) {
-		leftIndices = (int *) malloc(leftCount * sizeof(int));
-		rightIndices = (int *) malloc(rightCount * sizeof(int));
+		leftIndices = (int *) malloc(splitResult->left->size * sizeof(int));
+		rightIndices = (int *) malloc(splitResult->right->size * sizeof(int));
 
 		if (leftIndices == NULL || rightIndices == NULL) {
-			free(indexMapping);
-			spKDArraySplitResultDestroy(splitResult);
+			freeSplitVariables(splitResult, indexMapping);
 			return NULL;
 		}
 		splitResult->left->indicesMatrix[i] = leftIndices;
@@ -242,6 +375,52 @@ SPKDArraySplitResult spKDArraySplit(SPKDArray kdArr, int coor) {
 	free(indexMapping);
 
 	return splitResult;
+}
+
+SPPoint *spKDArrayGetPointsArrayCopy(SPKDArray kdArray) {
+	if (kdArray == NULL) return NULL;
+	return copyPointsArray(kdArray->pointsArray, spKDArrayGetSize(kdArray));
+}
+
+void spKDArrayFreePointsArray(SPPoint *pointsArray, int size) {
+	int i;
+	if (pointsArray == NULL) {
+		return;
+	}
+	for (i = 0; i < size; i++) {
+		spPointDestroy(pointsArray[i]);
+	}
+	free(pointsArray);
+}
+
+int **spKDArrayGetIndicesMatrixCopy(SPKDArray kdArray) {
+	if (kdArray == NULL) return NULL;
+	return copyIndicesMatrix(kdArray->indicesMatrix, spKDArrayGetSize(kdArray), spKDArrayGetPointsDimension(kdArray));
+}
+
+void spKDArrayFreeIndicesMatrix(int **indicesMatrix, int rows) {
+	int i, *row;
+	if (indicesMatrix == NULL) {
+		return;
+	}
+	for (i = 0; i < rows; i++) {
+		row = indicesMatrix[i];
+		if (row != NULL) {
+			free(row);
+		}
+	}
+	free(indicesMatrix);
+}
+
+
+int spKDArrayGetSize(SPKDArray kdArray) {
+	if (kdArray == NULL) return -1;
+	return kdArray->size;
+}
+
+int spKDArrayGetPointsDimension(SPKDArray kdArray) {
+	if (kdArray == NULL || kdArray->size == 0) return -1;
+	return spPointGetDimension(kdArray->pointsArray[0]);
 }
 
 double spKDArrayGetSpread(SPKDArray kdArr, int coor) {
@@ -313,37 +492,7 @@ int spKDArrayMaxSpreadDimension(SPKDArray kdArr) {
 	return maxSpreadDimension;
 }
 
-int spKDArrayGetPointsDimension(SPKDArray kdArray) {
-	if (kdArray == NULL || kdArray->size == 0) return -1;
-	return spPointGetDimension(kdArray->pointsArray[0]);
-}
-
-void freeIndicesMatrix(int **indicesMatrix, int rows) {
-	int i;
-	int *row;
-	if (indicesMatrix == NULL) {
-		return;
-	}
-	for (i = 0; i < rows; i++) {
-		row = indicesMatrix[i];
-		if (row != NULL) {
-			free(row);
-		}
-	}
-	free(indicesMatrix);
-}
-
-void spKDArrayDestroy(SPKDArray kdArray) {
-	if (kdArray == NULL) {
-		return;
-	}
-	// Order here is important, since the dimension relies on the points array..
-	freeIndicesMatrix(kdArray->indicesMatrix, spKDArrayGetPointsDimension(kdArray));
-	freePointsArray(kdArray->pointsArray, kdArray->size);
-	free(kdArray);
-}
-
-/*** Split result access methods ***/
+/*** Split Result Methods ***/
 
 SPKDArray spKDArraySplitResultGetLeft(SPKDArraySplitResult splitResult) {
 	if (splitResult == NULL) {

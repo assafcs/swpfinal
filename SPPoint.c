@@ -77,16 +77,4 @@ double spPointL2SquaredDistance(SPPoint p, SPPoint q) {
 	return squared_dist;
 }
 
-void freePointsArray(SPPoint *pointsArray, int size) {
-	int i;
-	if (pointsArray == NULL) {
-		return;
-	}
-	for (i = 0; i < size; i++) {
-		spPointDestroy(pointsArray[i]);
-	}
-	free(pointsArray);
-}
-
-
 

@@ -193,7 +193,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
-			freePointsArray(features, numOfFeaturesLoaded);
+			spKDArrayFreePointsArray(features, numOfFeaturesLoaded);
 			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}
@@ -324,7 +324,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TR
 
 		if (creationMSG != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			freePointsArray(features, numOfFeaturesExtracted);
+			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
 			*msg = creationMSG;
 			return NULL;
 		}
@@ -332,7 +332,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TR
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			freePointsArray(features, numOfFeaturesExtracted);
+			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
 			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}
@@ -440,7 +440,8 @@ int *findSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
 	for (int i = 0; i < numOfFeaturesExtracted; i++) {
 		SPPoint feature = features[i];
 		spKNearestNeighbours(searchTree, queue, feature);
-		for (int j = 0; j < spBPQueueSize(queue); j++) {
+		int queueSize = spBPQueueSize(queue);
+		for (int j = 0; j < queueSize; j++) {
 			SPListElement listElement = spBPQueuePeek(queue);
 			int index = spListElementGetIndex(listElement);
 			hitInfos[index].hits++;

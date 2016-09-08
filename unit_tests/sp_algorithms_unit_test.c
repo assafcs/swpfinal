@@ -77,7 +77,7 @@ static bool spSimpleNearestNeighboutTest() {
 
 	ASSERT_TRUE(spBPQueueIsEmpty(queue));
 
-	freePointsArray(points, 5);
+	spKDArrayFreePointsArray(points, 5);
 	spKDArrayDestroy(kdArray);
 	spKDTreeDestroy(treeRoot);
 	spBPQueueDestroy(queue);

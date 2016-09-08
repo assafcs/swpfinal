@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
 					printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
 				}
 			}
+			printf("\n");
 
 		}
 	// TODO: free everything

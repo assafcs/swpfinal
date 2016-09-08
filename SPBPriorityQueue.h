@@ -5,7 +5,29 @@
 /**
  * SP Bounded Priority Queue summary
  *
- * TODO Complete documentation
+ * Implementation of a bounded priority queue.
+ *
+ * The elements of the list are of type SPListElement, please refer
+ * to SPListElement.h for usage.
+ * It is also possible to access the values directly.
+ *
+ * The following functions are available:
+ *
+ *    spBPQueueCreate               - Creates a new empty queue.
+ *    spBPQueueCopy					- Creates a copy of the queue.
+ *    spBPQueueDestroy				- Deallocates the given queue.
+ *	  spBPQueueClear				- Removes all elements in a given queue.
+ *	  spBPQueueSize					- Returns the current size of the queue.
+ *	  spBPQueueGetMaxSize			- Returns the maximum capacity of the queue.
+ *	  spBPQueueEnqueue				- Enqueues a copy of the given element to the queue (according to the priority mechanism)
+ *	  spBPQueueDequeue				- Removes the queue's lowest priority element.
+ *	  spBPQueuePeek					- Returns a copy of the queue's lowest priority element.
+ *	  spBPQueuePeekLast				- Returns a copy of the queue's highest priority element.
+ *	  spBPQueueMinValue				- Returns the minimum value of elements in the queue.
+ *	  spBPQueueMaxValue				- Returns the maximum value of elements in the queue.
+ *	  spBPQueueIsEmpty				- Returns whether the queue is empty.
+ *	  spBPQueueIsFull				- Returns whether the queue is full.
+ *
  */
 
 
@@ -101,7 +123,7 @@ int spBPQueueGetMaxSize(SPBPQueue source);
 SP_BPQUEUE_MSG spBPQueueEnqueue(SPBPQueue source, SPListElement element);
 
 /**
- * Removed the element with the lowest priority from the queue.
+ * Removes the element with the lowest priority from the queue.
  *
  * If the queue is empty, nothing will happen and a proper message will be returned
  *
