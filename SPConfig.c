@@ -93,7 +93,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 		if (strcmp(filename, DEFAULT_CONFIG_FILENAME) == 0) {
 			printf(DEFAULT_CONFIG_FILE_COULD_NOT_BE_OPENED);
 		} else {
-			printf("%s%s", CONFIG_FILE_COULD_NOT_BE_OPENED_PREFIX, CONFIG_FILE_COULD_NOT_BE_OPENED_SUFFIX);
+			printf("%s%s%s", CONFIG_FILE_COULD_NOT_BE_OPENED_PREFIX, filename, CONFIG_FILE_COULD_NOT_BE_OPENED_SUFFIX);
 		}
 		return NULL;
 	}
