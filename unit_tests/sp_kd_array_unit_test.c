@@ -25,7 +25,7 @@ static bool kdArrayInitTest() {
 	SPKDArray kdArray = spKDArrayInit(points, 3);
 	ASSERT(kdArrayState(kdArray, points, 3, 2));
 
-	freePointsArray(points, 3);
+	spKDArrayFreePointsArray(points, 3);
 	spKDArrayDestroy(kdArray);
 	return true;
 }
@@ -55,7 +55,7 @@ static bool kdArraySplitTest() {
 	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), leftPoints, 3, 2));
 	ASSERT(kdArrayState(spKDArraySplitResultGetRight(splitResult), rightPoints, 2, 2));
 
-	freePointsArray(points, 5);
+	spKDArrayFreePointsArray(points, 5);
 	free(leftPoints);
 	free(rightPoints);
 
@@ -81,9 +81,38 @@ static bool kdArrayDimensionInfoTest() {
 
 	ASSERT_SAME(spKDArrayMaxSpreadDimension(kdArray), 2);
 
-	freePointsArray(points, 5);
+	spKDArrayFreePointsArray(points, 5);
 	spKDArrayDestroy(kdArray);
 	return true;
+}
+
+static bool kdArrayInitEmptyArrayTest() {
+	SPPoint *points = (SPPoint *) malloc(0);
+	SPKDArray kdArray = spKDArrayInit(points, 0);
+
+	ASSERT_NULL(kdArray);
+	spKDArrayFreePointsArray(points, 0);
+	spKDArrayDestroy(kdArray);
+
+	return true;
+}
+
+static bool kdArraySplitOnePointArrayTest() {
+	SPPoint *points = (SPPoint *) malloc(sizeof(*points));
+	points[0] = threeDPoint(0, 0, 0);
+	SPKDArray kdArray = spKDArrayInit(points, 1);
+	ASSERT(kdArrayState(kdArray, points, 1, 3));
+
+	SPKDArraySplitResult splitResult = spKDArraySplit(kdArray, 1);
+	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), points, 1, 3));
+	ASSERT_NULL(spKDArraySplitResultGetRight(splitResult));
+
+	spKDArrayFreePointsArray(points, 1);
+	spKDArrayDestroy(kdArray);
+	spKDArraySplitResultDestroy(splitResult);
+
+	return true;
+
 }
 
 /*** Helper assertion methods ***/
@@ -98,11 +127,13 @@ static bool kdArrayDimensionInfo(SPKDArray arr, int coor, double expectedSpread,
 static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int expectedSize, int expectedPointDimension) {
 	int axis, pointIndex, currentIndex;
 	double currentValue, previousValue;
-	int **indicesMatrix = spKDArrayGetIndicesMatrix(kdArray);
+	int **indicesMatrix = spKDArrayGetIndicesMatrixCopy(kdArray);
+	SPPoint *pointsArray = spKDArrayGetPointsArrayCopy(kdArray);
 
 	ASSERT_NOT_NULL(kdArray);
 	ASSERT_SAME(spKDArrayGetSize(kdArray), expectedSize);
-	ASSERT(pointsArrayEqualNotSame(spKDArrayGetPointsArray(kdArray), expectedPointsArray, expectedSize));
+
+	ASSERT(pointsArrayEqualNotSame(pointsArray, expectedPointsArray, expectedSize));
 
 	for (axis = 0; axis < expectedPointDimension; axis++) {
 		previousValue = -DBL_MAX;
@@ -113,11 +144,15 @@ static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int ex
 			previousValue = currentValue;
 		}
 	}
+	spKDArrayFreeIndicesMatrix(indicesMatrix, expectedPointDimension);
+	spKDArrayFreePointsArray(pointsArray);
 	return true;
 }
 
 int main() {
 	RUN_TEST(kdArrayInitTest);
 	RUN_TEST(kdArraySplitTest);
+	RUN_TEST(kdArrayInitEmptyArrayTest);
+	RUN_TEST(kdArraySplitOnePointArrayTest);
 	RUN_TEST(kdArrayDimensionInfoTest);
 }

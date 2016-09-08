@@ -193,7 +193,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
-			freePointsArray(features, numOfFeaturesLoaded);
+			spKDArrayFreePointsArray(features, numOfFeaturesLoaded);
 			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}
@@ -324,7 +324,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TR
 
 		if (creationMSG != SP_SEARCH_TREE_CREATION_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			freePointsArray(features, numOfFeaturesExtracted);
+			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
 			*msg = creationMSG;
 			return NULL;
 		}
@@ -332,7 +332,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TR
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			freePointsArray(features, numOfFeaturesExtracted);
+			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
 			*msg = SP_SEARCH_TREE_CREATION_ALLOC_FAIL;
 			return NULL;
 		}

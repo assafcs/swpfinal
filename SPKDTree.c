@@ -46,7 +46,7 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 			free(treeNode);
 			return NULL;
 		}
-		*data = spPointCopy(spKDArrayGetPointsArray(kdArray)[0]);
+		data = spKDArrayGetPointsArrayCopy(kdArray);
 
 		treeNode->dim = -1;
 		treeNode->medianVal = 0;
@@ -79,7 +79,7 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 	treeNode->rightChild = buildTree(spKDArraySplitResultGetRight(splitResult), splitMethod, splitDimension);
 	treeNode->data = NULL;
 	// The left are right arrays are used, so we do not free them
-	free(splitResult);
+	spKDArraySplitResultDestroy(splitResult);
 	return treeNode;
 }
 
