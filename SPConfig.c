@@ -612,7 +612,7 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config) {
 	return SP_CONFIG_SUCCESS;
 }
 
-bool spConfigGetMinimalGuiPreference(const SPConfig config, int index){
+bool spConfigGetMinimalGuiPreference(const SPConfig config){
 	return config->minimalGUI;
 }
 
