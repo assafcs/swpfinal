@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 		if (strcmp(imageQueryPath, "<>") == 0) {
 			break;
 		} else {
-			if (spConfigGetMinimalGuiPreference(config)){
+			if (!spConfigGetMinimalGuiPreference(config)){
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
 
