@@ -11,7 +11,7 @@
 #include "SPPoint.h"
 
 /**
- * Implementation of a kdArray - a data-structure used to efficiently create a kd search tree - by providing the ability
+ * Implementation of a k-dimensional array - a data-structure used to efficiently create a kd-tree - by providing the ability
  * to split the array with respect to a coordinate.
  *
  * The following functions are available:

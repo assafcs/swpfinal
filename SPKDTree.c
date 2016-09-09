@@ -7,6 +7,9 @@
 
 #include "SPKDTree.h"
 #include <stdlib.h>
+#include <math.h>
+
+/*** Type Declarations ***/
 
 struct sp_kd_tree_node_t {
 	int dim;
@@ -16,14 +19,19 @@ struct sp_kd_tree_node_t {
 	SPPoint *data;
 };
 
-/*** Methods declarations ***/
+/*** Private Methods ***/
 
-SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int previousSplitDimension);
-
-SPKDTreeNode spKDTreeBuild(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod) {
-	return buildTree(kdArray, splitMethod, -1);
-}
-
+/**
+ * Recursive implementation of spKDTreeBuild.
+ *
+ * @param kdArray The kd-array used to build the tree
+ * @param splitMethod The method which determines the dimension to split the array by.
+ * @param previousSplitDimension The dimension that the array was previously split by (in the "upper level")- for INCREMENTAL split method.
+ *
+ * @return
+ * 	NULL in case the given tree is NULL, or an allocation failure occurred
+ * 	Otherwise, return the root of the newly create tree.
+ */
 SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int previousSplitDimension) {
 	int arraySize, splitDimension, maxDimension;
 	SPKDTreeNode treeNode = NULL;
@@ -49,7 +57,7 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 		data = spKDArrayGetPointsArrayCopy(kdArray);
 
 		treeNode->dim = -1;
-		treeNode->medianVal = 0;
+		treeNode->medianVal = INFINITY;
 		treeNode->leftChild = NULL;
 		treeNode->rightChild = NULL;
 		treeNode->data = data;
@@ -83,11 +91,27 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 	return treeNode;
 }
 
+/*** Public Methods ***/
+
+SPKDTreeNode spKDTreeBuild(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod) {
+	return buildTree(kdArray, splitMethod, -1);
+}
+
+void spKDTreeDestroy(SPKDTreeNode treeNode) {
+	if (treeNode == NULL) return;
+	if (treeNode->data != NULL) {
+		spPointDestroy(*(treeNode->data));
+	}
+	spKDTreeDestroy(treeNode->leftChild);
+	spKDTreeDestroy(treeNode->rightChild);
+	free(treeNode);
+}
+
 bool spKDTreeNodeIsLeaf(SPKDTreeNode treeNode) {
 	if (treeNode == NULL) {
 		return false;
 	}
-	return (treeNode->dim == -1 && treeNode->medianVal == 0 && treeNode->rightChild == NULL && treeNode->leftChild == NULL);
+	return (treeNode->dim == -1 && treeNode->medianVal == INFINITY && treeNode->rightChild == NULL && treeNode->leftChild == NULL);
 }
 
 int spKDTreeNodeGetDimension(SPKDTreeNode treeNode) {
@@ -96,7 +120,7 @@ int spKDTreeNodeGetDimension(SPKDTreeNode treeNode) {
 }
 
 double spKDTreeNodeGetMedianValue(SPKDTreeNode treeNode) {
-	if (treeNode == NULL) return 0;
+	if (treeNode == NULL) return INFINITY;
 	return treeNode->medianVal;
 }
 
@@ -113,15 +137,5 @@ SPKDTreeNode spKDTreeNodeGetRightChild(SPKDTreeNode treeNode) {
 SPPoint *spKDTreeNodeGetData(SPKDTreeNode treeNode) {
 	if (treeNode == NULL) return NULL;
 	return treeNode->data;
-}
-
-void spKDTreeDestroy(SPKDTreeNode treeNode) {
-	if (treeNode == NULL) return;
-	if (treeNode->data != NULL) {
-		spPointDestroy(*(treeNode->data));
-	}
-	spKDTreeDestroy(treeNode->leftChild);
-	spKDTreeDestroy(treeNode->rightChild);
-	free(treeNode);
 }
 
