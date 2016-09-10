@@ -9,8 +9,17 @@
 #include <stdio.h>
 #include <string.h>
 
-static const int TOKEN_MAX_LEN = 100;
+/*** Private Methods ***/
 
+/**
+ * Duplicates the given string.
+ *
+ * @param str The string to duplicate
+ *
+ * @return
+ *	NULL is an allocation failure occurred.
+ *	Otherwise returns the duplicated string.
+ */
 char *strDuplicate(char *str) {
 	char *duplicate = malloc((strlen(str) + 1) * sizeof(char));
 	if (duplicate == NULL) {
@@ -19,6 +28,8 @@ char *strDuplicate(char *str) {
 	strcpy(duplicate, str);
 	return duplicate;
 }
+
+/*** Public Methods ***/
 
 char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
 
@@ -56,10 +67,7 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
     		token[tokenIdx] = '\0';
     		tokenDup = strDuplicate(token);
     		if (tokenDup == NULL) {
-    			for (j = 0; j < i; j++) {
-    				free(result[j]);
-    		    }
-    		    free(result);
+    			spUtilFreeStringsArray(result, i);
     		    return NULL;
     		}
     		result[resultIdx] = tokenDup;
@@ -74,10 +82,7 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
     token[tokenIdx] = '\0';
     tokenDup = strDuplicate(token);
     if (tokenDup == NULL) {
-    	for (j = 0; j < i; j++) {
-    		free(result[j]);
-    	}
-    	free(result);
+    	spUtilFreeStringsArray(result, i);
         return NULL;
     }
     result[resultIdx] = tokenDup;
@@ -120,7 +125,7 @@ char *spUtilStrJoin(char **strs, int stringsCount, const char delim) {
 	return result;
 }
 
-void freeStringsArray(char **strings, int count) {
+void spUtilFreeStringsArray(char **strings, int count) {
 	if (strings == NULL) {
 		return;
 	}

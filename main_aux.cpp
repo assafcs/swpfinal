@@ -89,7 +89,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_SEA
 	free(featureCoordinatesString);
 
 	if (splitResult == NULL || numberOfCoordinates != expectedDimension) {
-		freeStringsArray(splitResult, numberOfCoordinates);
+		spUtilFreeStringsArray(splitResult, numberOfCoordinates);
 		*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 		return NULL;
 	}
@@ -99,7 +99,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_SEA
 		double featureCoordinate = atof(splitResult[i]);
 		if (featureCoordinate == 0 && strcmp(splitResult[i], "0") != 0) {
 			free(data);
-			freeStringsArray(splitResult, numberOfCoordinates);
+			spUtilFreeStringsArray(splitResult, numberOfCoordinates);
 			*msg = SP_SEARCH_TREE_CREATION_LOAD_ERROR;
 			return NULL;
 		}
@@ -107,7 +107,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_SEA
 	}
 	SPPoint feature = spPointCreate(data, numberOfCoordinates, index);
 	free(data);
-	freeStringsArray(splitResult, numberOfCoordinates);
+	spUtilFreeStringsArray(splitResult, numberOfCoordinates);
 	*msg = SP_SEARCH_TREE_CREATION_SUCCESS;
 	return feature;
 }
