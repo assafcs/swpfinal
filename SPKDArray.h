@@ -25,6 +25,8 @@
  * 		spKDArrayDestroy			- Deallocates the given kdArray.
  * 		spKDArrayGetSize			- Returns the number of points in the kdArray.
  * 		spKDArrayGetPointsDimension - Returns the kdArray points' dimension.
+ * 		spKDArrayGetPointsArrayCopy - Returns a copy of the points array, with no specific order.
+ * 		spKDArrayFreePointsArray	- Deallocates a given points array.
  *
  */
 
