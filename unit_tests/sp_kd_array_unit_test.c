@@ -14,7 +14,7 @@
 #include "../SPKDArray.h"
 
 static bool kdArrayDimensionInfo(SPKDArray arr, int coor, double expectedSpread, double expectedMedian);
-static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int expectedSize, int expectedPointDimension);
+static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int expectedSize);
 
 static bool kdArrayInitTest() {
 	SPPoint *points = (SPPoint *) malloc(3 * sizeof(*points));
@@ -23,7 +23,7 @@ static bool kdArrayInitTest() {
 	points[2] = twoDPoint(3.5, 7.5);
 
 	SPKDArray kdArray = spKDArrayInit(points, 3);
-	ASSERT(kdArrayState(kdArray, points, 3, 2));
+	ASSERT(kdArrayState(kdArray, points, 3));
 
 	spKDArrayFreePointsArray(points, 3);
 	spKDArrayDestroy(kdArray);
@@ -39,7 +39,7 @@ static bool kdArraySplitTest() {
 	points[4] = twoDPoint(3, 4);
 
 	SPKDArray kdArray = spKDArrayInit(points, 5);
-	ASSERT(kdArrayState(kdArray, points, 5, 2));
+	ASSERT(kdArrayState(kdArray, points, 5));
 
 	SPKDArraySplitResult splitResult = spKDArraySplit(kdArray, 0);
 
@@ -52,8 +52,8 @@ static bool kdArraySplitTest() {
 	rightPoints[0] = points[3];
 	rightPoints[1] = points[1];
 
-	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), leftPoints, 3, 2));
-	ASSERT(kdArrayState(spKDArraySplitResultGetRight(splitResult), rightPoints, 2, 2));
+	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), leftPoints, 3));
+	ASSERT(kdArrayState(spKDArraySplitResultGetRight(splitResult), rightPoints, 2));
 
 	spKDArrayFreePointsArray(points, 5);
 	free(leftPoints);
@@ -73,7 +73,7 @@ static bool kdArrayDimensionInfoTest() {
 	points[4] = threeDPoint(3, 4, 133.5);
 
 	SPKDArray kdArray = spKDArrayInit(points, 5);
-	ASSERT(kdArrayState(kdArray, points, 5, 3));
+	ASSERT(kdArrayState(kdArray, points, 5));
 
 	ASSERT(kdArrayDimensionInfo(kdArray, 0, 122, 3));
 	ASSERT(kdArrayDimensionInfo(kdArray, 1, 68, 7));
@@ -101,10 +101,10 @@ static bool kdArraySplitOnePointArrayTest() {
 	SPPoint *points = (SPPoint *) malloc(sizeof(*points));
 	points[0] = threeDPoint(0, 0, 0);
 	SPKDArray kdArray = spKDArrayInit(points, 1);
-	ASSERT(kdArrayState(kdArray, points, 1, 3));
+	ASSERT(kdArrayState(kdArray, points, 1));
 
 	SPKDArraySplitResult splitResult = spKDArraySplit(kdArray, 1);
-	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), points, 1, 3));
+	ASSERT(kdArrayState(spKDArraySplitResultGetLeft(splitResult), points, 1));
 	ASSERT_NULL(spKDArraySplitResultGetRight(splitResult));
 
 	spKDArrayFreePointsArray(points, 1);
@@ -124,28 +124,13 @@ static bool kdArrayDimensionInfo(SPKDArray arr, int coor, double expectedSpread,
 	return true;
 }
 
-static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int expectedSize, int expectedPointDimension) {
-	int axis, pointIndex, currentIndex;
-	double currentValue, previousValue;
-	int **indicesMatrix = spKDArrayGetIndicesMatrixCopy(kdArray);
-	SPPoint *pointsArray = spKDArrayGetPointsArrayCopy(kdArray);
-
+static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int expectedSize) {
 	ASSERT_NOT_NULL(kdArray);
 	ASSERT_SAME(spKDArrayGetSize(kdArray), expectedSize);
 
+	SPPoint *pointsArray = spKDArrayGetPointsArrayCopy(kdArray);
 	ASSERT(pointsArrayEqualNotSame(pointsArray, expectedPointsArray, expectedSize));
-
-	for (axis = 0; axis < expectedPointDimension; axis++) {
-		previousValue = -DBL_MAX;
-		for (pointIndex = 0; pointIndex < expectedSize; pointIndex++) {
-			currentIndex = indicesMatrix[axis][pointIndex];
-			currentValue = spPointGetAxisCoor(expectedPointsArray[currentIndex], axis);
-			ASSERT_TRUE(currentValue >= previousValue);
-			previousValue = currentValue;
-		}
-	}
-	spKDArrayFreeIndicesMatrix(indicesMatrix, expectedPointDimension);
-	spKDArrayFreePointsArray(pointsArray);
+	spKDArrayFreePointsArray(pointsArray, expectedSize);
 	return true;
 }
 

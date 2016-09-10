@@ -123,6 +123,27 @@ SPPoint *copyPointsArray(SPPoint *pointsArray, int size) {
 }
 
 /**
+ * Deallocates a given indices matrix.
+ *
+ * @param indicesMatrix The indices matrix to deallocate.
+ * @param rows The number of rows in the matrix.
+ *
+ */
+void spKDArrayFreeIndicesMatrix(int **indicesMatrix, int rows) {
+	int i, *row;
+	if (indicesMatrix == NULL) {
+		return;
+	}
+	for (i = 0; i < rows; i++) {
+		row = indicesMatrix[i];
+		if (row != NULL) {
+			free(row);
+		}
+	}
+	free(indicesMatrix);
+}
+
+/**
  * Creates an indices matrix.
  * Each row of the matrix contains the indices of the points, sorted by the points' values with respect to the proper coordinate.
  *
@@ -179,6 +200,21 @@ int **copyIndicesMatrix(int** indicesMatrix, int size, int pointsDimension) {
 		memcpy(indicesMatrixCopy[i], indicesMatrix[i], size * sizeof(int));
 	}
 	return indicesMatrixCopy;
+}
+
+/**
+ * Returns a copy of the internal indices matrix.
+ * Each row of the matrix represents the indices of points in the points array, sorted by the row index coordinate.
+ *
+ * @param kdArray The kd-array whose indices matrix is requested.
+ *
+ * @return
+ * 	NULL if allocation failed, or the given array is NULL.
+ * 	A copy of the kd-array's indices matrix on case of success
+ */
+int **spKDArrayGetIndicesMatrixCopy(SPKDArray kdArray) {
+	if (kdArray == NULL) return NULL;
+	return copyIndicesMatrix(kdArray->indicesMatrix, spKDArrayGetSize(kdArray), spKDArrayGetPointsDimension(kdArray));
 }
 
 /**
@@ -391,25 +427,6 @@ void spKDArrayFreePointsArray(SPPoint *pointsArray, int size) {
 		spPointDestroy(pointsArray[i]);
 	}
 	free(pointsArray);
-}
-
-int **spKDArrayGetIndicesMatrixCopy(SPKDArray kdArray) {
-	if (kdArray == NULL) return NULL;
-	return copyIndicesMatrix(kdArray->indicesMatrix, spKDArrayGetSize(kdArray), spKDArrayGetPointsDimension(kdArray));
-}
-
-void spKDArrayFreeIndicesMatrix(int **indicesMatrix, int rows) {
-	int i, *row;
-	if (indicesMatrix == NULL) {
-		return;
-	}
-	for (i = 0; i < rows; i++) {
-		row = indicesMatrix[i];
-		if (row != NULL) {
-			free(row);
-		}
-	}
-	free(indicesMatrix);
 }
 
 

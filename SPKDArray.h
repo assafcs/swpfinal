@@ -111,27 +111,6 @@ SPPoint *spKDArrayGetPointsArrayCopy(SPKDArray kdArray);
 void spKDArrayFreePointsArray(SPPoint *pointsArray, int size);
 
 /**
- * Returns a copy of the internal indices matrix.
- * Each row of the matrix represents the indices of points in the points array, sorted by the row index coordinate.
- *
- * @param kdArray The kd-array whose indices matrix is requested.
- *
- * @return
- * 	NULL if allocation failed, or the given array is NULL.
- * 	A copy of the kd-array's indices matrix on case of success
- */
-int **spKDArrayGetIndicesMatrixCopy(SPKDArray kdArray);
-
-/**
- * Deallocates a given indices matrix.
- *
- * @param indicesMatrix The indices matrix to deallocate.
- * @param rows The number of rows in the matrix.
- *
- */
-void spKDArrayFreeIndicesMatrix(int **indicesMatrix, int rows);
-
-/**
  * Returns the size of kd-array, meaning the number of points in it.
  *
  * @param kdArray The kd-array whose size is requested.
