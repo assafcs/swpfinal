@@ -77,9 +77,9 @@ int main(int argc, char *argv[]) {
 			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
 			for (int i = 0; i < resultsCount; i++) {
 				if (spConfigGetMinimalGuiPreference(config)){
-					ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
+					//ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
 				} else {
-					printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
+					//printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
 				}
 			}
 			printf("\n");

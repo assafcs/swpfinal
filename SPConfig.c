@@ -7,6 +7,7 @@
 
 #include "SPConfig.h"
 #include "SPLogger.h"
+#include "SPParameterReader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -63,7 +64,6 @@ SP_PARAMETER_PARSE_MSG parseParameter(SPConfig config, char *key, char *value,
 		char *requiredFieldsBitMask, bool* usedValueAsString);
 int setupConfigWithDefaultValues(SPConfig config);
 SPConfig initConfig();
-void addCharacterToWord(char c, char** word, int* wordSize, int* wordCapacity);
 char *defaultStringValue(const char *val);
 
 /*** Constants ***/
@@ -78,17 +78,23 @@ static const char NUM_IMAGES_BIT_MASK = 0x08;
 /*** Methods Implementations ***/
 
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
-	FILE *configFileStream;
 	int lineNum = -1;
 	KeyToValue *currentParameter;
 	SP_PARAMETER_READ_MSG parameterReadMsg;
 	SP_PARAMETER_PARSE_MSG parameterParseMsg;
-	bool isDone = false, usedValueAsString = false;
+	bool validParameters = true, usedValueAsString = false;
 	char requiredFieldsBitMask = 0x00;
 	SPConfig config, returnValue;
+	SPParameterReader parameterReader;
 
-	configFileStream = fopen(filename, "r");
-	if (configFileStream == NULL) {
+	if (filename == NULL) {
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return NULL;
+	}
+
+	parameterReader = spParameterReaderInit(fopen(filename, "r"));
+
+	if (parameterReader == NULL) {
 		*msg = SP_CONFIG_CANNOT_OPEN_FILE;
 		if (strcmp(filename, DEFAULT_CONFIG_FILENAME) == 0) {
 			printf(DEFAULT_CONFIG_FILE_COULD_NOT_BE_OPENED);
@@ -99,13 +105,13 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 	}
 	config = initConfig();
 	if (config == NULL) {
-		fclose(configFileStream);
+		spParameterReaderDestroy(parameterReader);
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		return NULL;
 	}
 
 	if (setupConfigWithDefaultValues(config) == 1) {
-		fclose(configFileStream);
+		spParameterReaderDestroy(parameterReader);
 		spConfigDestroy(config);
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		return NULL;
@@ -114,20 +120,20 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 	returnValue = config;
 	*msg = SP_CONFIG_SUCCESS;
 
-	while (!isDone) {
+	while (validParameters && spParameterReaderHasNext(parameterReader)) {
 		lineNum++;
-		currentParameter = nextParameter(configFileStream, &parameterReadMsg, &isDone);
+		currentParameter = spParameterReaderNext(parameterReader, &parameterReadMsg);
 		switch (parameterReadMsg) {
 		case SP_PARAMETER_READ_ALLOCATION_FAILED:
 			returnValue = NULL;
 			*msg = SP_CONFIG_ALLOC_FAIL;
-			isDone = true;
+			validParameters = false;
 			break;
 		case SP_PARAMETER_READ_INVALID_FORMAT:
 			returnValue = NULL;
 			*msg = SP_CONFIG_INVALID_STRING;
 			printRErrorMsg(filename, lineNum, MESSAGE_INVALID_CONF_LINE);
-			isDone = true;
+			validParameters = false;
 			break;
 		case SP_PARAMETER_READ_SUCCESS:
 			parameterParseMsg = parseParameter(config, currentParameter->key, currentParameter->value,
@@ -137,7 +143,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 				returnValue = NULL;
 				*msg = SP_CONFIG_INVALID_INTEGER;
 				printRErrorMsg(filename, lineNum, MESSAGE_INVALID_VALUE_CONSTRAINT_NOT_MET);
-				isDone = true;
+				validParameters = false;
 				break;
 			default:
 				break;
@@ -182,7 +188,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 		spConfigDestroy(config);
 	}
 
-	fclose(configFileStream);
+	spParameterReaderDestroy(parameterReader);
 	return returnValue;
 }
 
@@ -355,139 +361,6 @@ bool boolValue(const char *parameterAsString, bool* success) {
 	}
 }
 
-KeyToValue *nextParameter(FILE *stream, SP_PARAMETER_READ_MSG *msg, bool* reachedEnd) {
-	KeyToValue *readParameter = NULL;
-	char ch;
-	int keyCapacity = 16, valueCapacity = 16;
-	int *currentCapacity = &keyCapacity;
-	int keySize = 0, valueSize = 0;
-	int *currentSize = &keySize;
-	bool invalid = false, lineBreak = false, commentLine = false;
-	char *key, *value, *outputKey, *outputValue;
-	char **current;
-
-	key = (char *) malloc(sizeof(char) * keyCapacity);
-	if (key == NULL) {
-		*msg = SP_PARAMETER_READ_ALLOCATION_FAILED;
-		return NULL;
-	}
-
-	value = (char *) malloc(sizeof(char) * valueCapacity);
-	if (key == NULL) {
-		free(key);
-		*msg = SP_PARAMETER_READ_ALLOCATION_FAILED;
-		return NULL;
-	}
-
-	current = &key;
-
-	while ((ch = getc(stream)) != EOF) {
-		if (ch == '\n') {
-			if (current == &value && valueSize > 0) {
-				addCharacterToWord('\0', current, currentSize, currentCapacity);
-				current = NULL;
-				currentSize = currentCapacity = NULL;
-			}
-			lineBreak = true;
-			break;
-		}
-
-		if (invalid || commentLine) {
-			// Wait for new line
-			continue;
-		}
-
-		if (isspace(ch)) {
-			if ((current == &key && keySize > 0) || (current == &value && valueSize > 0)) {
-				addCharacterToWord('\0', current, currentSize, currentCapacity);
-				current = NULL;
-				currentSize = currentCapacity = NULL;
-			}
-			continue;
-		}
-
-		if (ch == '=') {
-			if (current == &key && keySize > 0) {
-				addCharacterToWord('\0', current, currentSize, currentCapacity);
-				current = NULL;
-				currentSize = currentCapacity = NULL;
-			}
-			if (current == NULL && keySize > 0 && valueSize == 0) {
-				current = &value;
-				currentSize = &valueSize;
-				currentCapacity = &valueCapacity;
-			} else {
-				invalid = true;
-				continue;
-			}
-		} else {
-			if (current == NULL) {
-				invalid = true;
-				continue;
-			} else if (ch == '#' && current == &key && keySize == 0) {
-				commentLine = true;
-				continue;
-			}
-			addCharacterToWord(ch, current, currentSize, currentCapacity);
-		}
-	}
-
-	if (!lineBreak) {
-		// In case the loop exited because of EOF - complete the value if needed
-		if (current == &value && valueSize > 0) {
-			addCharacterToWord('\0', current, currentSize, currentCapacity);
-			current = NULL;
-			currentSize = currentCapacity = NULL;
-		}
-		// Informs the the stream reached EOF
-		*reachedEnd = true;
-	}
-
-	*msg = SP_PARAMETER_READ_INVALID_FORMAT;
-
-	if (!invalid) {
-		if (commentLine) {
-			*msg = SP_PARAMETER_READ_COMMENT_LINE;
-		} else if (keySize == 0 && valueSize == 0) {
-			*msg = SP_PARAMETER_READ_EMPTY_LINE;
-		} else if (current == NULL && keySize > 0 && valueSize > 0) {
-			// Success reading key and value
-			outputKey = (char *) malloc(keySize * sizeof(char));
-			outputValue = (char *) malloc(valueSize * sizeof(char));
-			readParameter = (KeyToValue *) malloc(sizeof(KeyToValue));
-			if (outputKey == NULL || outputValue == NULL || readParameter == NULL) {
-				free(outputKey);
-				free(outputValue);
-				free(readParameter);
-				readParameter = NULL;
-				*msg = SP_PARAMETER_READ_ALLOCATION_FAILED;
-			} else {
-				strcpy(outputKey, key);
-				strcpy(outputValue, value);
-
-				readParameter->key = outputKey;
-				readParameter->value = outputValue;
-
-				*msg = SP_PARAMETER_READ_SUCCESS;
-			}
-		}
-	}
-
-	free(key);
-	free(value);
-
-	return readParameter;
-}
-
-void addCharacterToWord(char c, char** word, int* wordSize, int* wordCapacity) {
-	if ((*wordSize) >= (*wordCapacity)) {
-		(*wordCapacity) *= 2;
-		(*word) = (char*) realloc((*word), (*wordCapacity) * sizeof(char));
-	}
-	(*word)[*wordSize] = c;
-	(*wordSize)++;
-}
-
 void spConfigDestroy(SPConfig config) {
 	if (config == NULL) {
 		return;
@@ -616,12 +489,6 @@ bool spConfigGetMinimalGuiPreference(const SPConfig config){
 	return config->minimalGUI;
 }
 
-char *spConfigGetSpecificImagePath(const SPConfig config, int index){
-	char ret[LINE_MAX_SIZE];
-	sprintf(ret, "%s%s%d%s", config->imagesDirectory, config->imagesPrefix, index, config->imagesSuffix);
-	return ret;
-}
-
 char *spConfigGetLoggerFilename(const SPConfig config){
 	return config->loggerFilename;
 }
@@ -629,7 +496,6 @@ char *spConfigGetLoggerFilename(const SPConfig config){
 SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config){
 	return config->loggerLevel;
 }
-
 
 SP_CONFIG_MSG spConfigGetImageFeaturesPath(char *featuresPath, const SPConfig config, int index) {
 	if (featuresPath == NULL || config == NULL) {
@@ -641,3 +507,4 @@ SP_CONFIG_MSG spConfigGetImageFeaturesPath(char *featuresPath, const SPConfig co
 	sprintf(featuresPath, "%s%s%d%s", config->imagesDirectory, config->imagesPrefix, index, FEATURES_PATH_SUFFIX);
 	return SP_CONFIG_SUCCESS;
 }
+

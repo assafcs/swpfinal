@@ -32,23 +32,6 @@ typedef enum sp_config_msg_t {
 
 typedef struct sp_config_t* SPConfig;
 
-/*** For Testing - Remove from here! ***/
-
-typedef struct sp_key_to_value {
-	char *key;
-	char *value;
-} KeyToValue;
-
-typedef enum sp_parameter_read_msg_t {
-	SP_PARAMETER_READ_INVALID_FORMAT,
-	SP_PARAMETER_READ_ALLOCATION_FAILED,
-	SP_PARAMETER_READ_EMPTY_LINE,
-	SP_PARAMETER_READ_COMMENT_LINE,
-	SP_PARAMETER_READ_SUCCESS
-} SP_PARAMETER_READ_MSG;
-
-KeyToValue *nextParameter(FILE *stream, SP_PARAMETER_READ_MSG *msg, bool* reachedEnd);
-
 /**
  * Creates a new system configuration struct. The configuration struct
  * is initialized based on the configuration file given by 'filename'.
@@ -201,8 +184,6 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 char *spConfigGetLoggerFilename(const SPConfig config);
 
 bool spConfigGetMinimalGuiPreference(const SPConfig config);
-
-char *spConfigGetSpecificImagePath(const SPConfig config, int index);
 
 
 SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config);
