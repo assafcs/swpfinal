@@ -6,7 +6,6 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <float.h>
 #include "unit_test_util.h"
@@ -135,9 +134,11 @@ static bool kdArrayState(SPKDArray kdArray, SPPoint *expectedPointsArray, int ex
 }
 
 int main() {
+	printf("Running SPKDArrayTest.. \n");
 	RUN_TEST(kdArrayInitTest);
 	RUN_TEST(kdArraySplitTest);
 	RUN_TEST(kdArrayInitEmptyArrayTest);
 	RUN_TEST(kdArraySplitOnePointArrayTest);
 	RUN_TEST(kdArrayDimensionInfoTest);
+	return 0;
 }

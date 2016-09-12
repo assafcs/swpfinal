@@ -1,0 +1,11 @@
+/Debug/
+*.o
+/unit_tests/*.o
+sp_config_unit_test
+sp_kd_array_unit_test
+sp_kd_tree_unit_test
+sp_parameter_reader_unit_test
+sp_util_unit_test
+SPCBIR
+pca.yml
+

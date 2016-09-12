@@ -99,12 +99,15 @@ static bool leafNodeState(SPKDTreeNode treeNode, SPPoint expectedData) {
 	ASSERT_SAME(spKDTreeNodeGetMedianValue(treeNode), INFINITY);
 	ASSERT_NULL(spKDTreeNodeGetLeftChild(treeNode));
 	ASSERT_NULL(spKDTreeNodeGetRightChild(treeNode));
-	ASSERT(pointsEqualNotSame(*(spKDTreeNodeGetData(treeNode)), expectedData));
+	SPPoint *treeNodeData = spKDTreeNodeGetData(treeNode);
+	ASSERT(pointsEqualNotSame(*(treeNodeData), expectedData));
+	spKDArrayFreePointsArray(treeNodeData, 1);
 	return true;
 }
 
 
 int main() {
+	printf("Running SPKDTreeTest.. \n");
 	RUN_TEST(kdTreeMaxSpreadProperBuildTest);
 	RUN_TEST(kdTreeIncrementalProperBuildTest);
 }

@@ -18,7 +18,7 @@ static bool properParametersRead(SPParameterReader parameterReader, const char *
 		const char *expectedValue, bool isEOFExpected);
 
 static bool spParameterReadTest() {
-	SPParameterReader parameterReader = spParameterReaderInit(fopen("/Users/mataneilat/Documents/workspace/swprojectfinal/test_config.txt", "r"));
+	SPParameterReader parameterReader = spParameterReaderInit(fopen("./test_resources/test_config.txt", "r"));
 
 	ASSERT_NOT_NULL(parameterReader);
 	ASSERT(invalidParameterRead(parameterReader, SP_PARAMETER_READ_INVALID_FORMAT, false));
@@ -51,6 +51,7 @@ static bool invalidParameterRead(SPParameterReader parameterReader, SP_PARAMETER
 	ASSERT_NULL(result);
 	ASSERT_SAME(resultMsg, expectedMsg);
 	ASSERT_SAME(!isEOFExpected, spParameterReaderHasNext(parameterReader));
+	spParameterReaderKeyToValueDestroy(result, true);
 	return true;
 }
 
@@ -62,9 +63,11 @@ static bool properParametersRead(SPParameterReader parameterReader, const char *
 	ASSERT_SAME(strcmp(result->key, expectedKey), 0);
 	ASSERT_SAME(strcmp(result->value, expectedValue), 0);
 	ASSERT_SAME(!isEOFExpected, spParameterReaderHasNext(parameterReader));
+	spParameterReaderKeyToValueDestroy(result, true);
 	return true;
 }
 
 int main() {
+	printf("Running SPParameterReaderTest.. \n");
 	RUN_TEST(spParameterReadTest);
 }

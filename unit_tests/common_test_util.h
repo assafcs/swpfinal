@@ -15,5 +15,6 @@ bool pointsArrayEqualNotSame(SPPoint* aPointsArray, SPPoint *bPointsArray, int s
 bool pointsEqualNotSame(SPPoint aPoint, SPPoint bPoint);
 SPPoint twoDPoint(double x, double y);
 SPPoint threeDPoint(double x, double y, double z);
+SPPoint indexedThreeDPoint(int index, double x, double y, double z);
 
 #endif /* UNIT_TESTS_COMMON_TEST_UTIL_H_ */

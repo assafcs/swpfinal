@@ -20,6 +20,9 @@ void spKNearestNeighbours(SPKDTreeNode tree, SPBPQueue queue, SPPoint point) {
 		leafPoint = spKDTreeNodeGetData(tree);
 		insertedElement = spListElementCreate(spPointGetIndex(*leafPoint), spPointL2SquaredDistance(*leafPoint, point));
 		spBPQueueEnqueue(queue, insertedElement);
+		spListElementDestroy(insertedElement);
+		spPointDestroy(*leafPoint);
+		free(leafPoint);
 		return;
 	}
 	dim = spKDTreeNodeGetDimension(tree);

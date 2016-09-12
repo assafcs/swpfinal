@@ -182,3 +182,14 @@ bool spParameterReaderHasNext(SPParameterReader parameterReader) {
 	return parameterReader->hasNext && !feof(parameterReader->stream);
 }
 
+void spParameterReaderKeyToValueDestroy(KeyToValue *keyToValue, bool destroyValue) {
+	if (keyToValue == NULL) {
+		return;
+	}
+	free(keyToValue->key);
+	if (destroyValue) {
+		free(keyToValue->value);
+	}
+	free(keyToValue);
+}
+

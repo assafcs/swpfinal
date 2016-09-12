@@ -36,7 +36,6 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 	int arraySize, splitDimension, maxDimension;
 	SPKDTreeNode treeNode = NULL;
 	SPKDArraySplitResult splitResult = NULL;
-	SPPoint *data;
 	if (kdArray == NULL) {
 		return NULL;
 	}
@@ -49,18 +48,11 @@ SPKDTreeNode buildTree(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod, int 
 		return NULL;
 	}
 	if (arraySize == 1) {
-		data = (SPPoint *) malloc(sizeof(SPPoint));
-		if (data == NULL) {
-			free(treeNode);
-			return NULL;
-		}
-		data = spKDArrayGetPointsArrayCopy(kdArray);
-
 		treeNode->dim = -1;
 		treeNode->medianVal = INFINITY;
 		treeNode->leftChild = NULL;
 		treeNode->rightChild = NULL;
-		treeNode->data = data;
+		treeNode->data = spKDArrayGetPointsArrayCopy(kdArray);
 		return treeNode;
 	}
 	maxDimension = spKDArrayGetPointsDimension(kdArray);
@@ -100,7 +92,7 @@ SPKDTreeNode spKDTreeBuild(SPKDArray kdArray, SP_TREE_SPLIT_METHOD splitMethod) 
 void spKDTreeDestroy(SPKDTreeNode treeNode) {
 	if (treeNode == NULL) return;
 	if (treeNode->data != NULL) {
-		spPointDestroy(*(treeNode->data));
+		spKDArrayFreePointsArray(treeNode->data, 1);
 	}
 	spKDTreeDestroy(treeNode->leftChild);
 	spKDTreeDestroy(treeNode->rightChild);
@@ -136,6 +128,9 @@ SPKDTreeNode spKDTreeNodeGetRightChild(SPKDTreeNode treeNode) {
 
 SPPoint *spKDTreeNodeGetData(SPKDTreeNode treeNode) {
 	if (treeNode == NULL) return NULL;
-	return treeNode->data;
+	if (treeNode->data == NULL) return NULL;
+	SPPoint *dataCopy = (SPPoint *) malloc(sizeof(*dataCopy));
+	*dataCopy = spPointCopy(*treeNode->data);
+	return dataCopy;
 }
 

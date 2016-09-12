@@ -124,8 +124,8 @@ SPKDTreeNode spKDTreeNodeGetLeftChild(SPKDTreeNode treeNode);
 SPKDTreeNode spKDTreeNodeGetRightChild(SPKDTreeNode treeNode);
 
 /**
- * Returns the tree node's data.
- * Data only resides in leaves, thus this returns NULL for a non-leaf node.
+ * Returns a copy of the tree node's data.
+ * Data only resides in leaves (as a single point), thus this returns NULL for a non-leaf node.
  *
  * @param treeNode The queries tree node.
  *

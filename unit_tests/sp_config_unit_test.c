@@ -26,14 +26,14 @@ static bool spConfigMissingFileTest() {
 }
 
 static bool spConfigMissingConfigFileTest() {
-	ASSERT(configCreateError("/Users/mataneilat/Documents/workspace/swprojectfinal/test_config_missing.txt", SP_CONFIG_MISSING_SUFFIX));
+	ASSERT(configCreateError("./test_resources/test_config_missing.txt", SP_CONFIG_MISSING_SUFFIX));
 	return true;
 }
 
 static bool spConfigProperConfigFileTest() {
 
 	SP_CONFIG_MSG resultMsg;
-	SPConfig config = spConfigCreate("/Users/mataneilat/Documents/workspace/swprojectfinal/test_config_1.txt", &resultMsg);
+	SPConfig config = spConfigCreate("./test_resources/test_config_1.txt", &resultMsg);
 
 	ASSERT_NOT_NULL(config);
 	ASSERT_SAME(resultMsg, SP_CONFIG_SUCCESS);
@@ -53,7 +53,7 @@ static bool spConfigProperConfigFileTest() {
 
 static bool spConfigPCAPathTest() {
 	SP_CONFIG_MSG resultMsg;
-	SPConfig config = spConfigCreate("/Users/mataneilat/Documents/workspace/swprojectfinal/test_config_1.txt", &resultMsg);
+	SPConfig config = spConfigCreate("./test_resources/test_config_1.txt", &resultMsg);
 
 	ASSERT_NOT_NULL(config);
 	ASSERT_SAME(resultMsg, SP_CONFIG_SUCCESS);
@@ -75,7 +75,7 @@ static bool spConfigPCAPathTest() {
 
 static bool spConfigImagesPathTest() {
 	SP_CONFIG_MSG resultMsg;
-	SPConfig config = spConfigCreate("/Users/mataneilat/Documents/workspace/swprojectfinal/test_config_1.txt", &resultMsg);
+	SPConfig config = spConfigCreate("./test_resources/test_config_1.txt", &resultMsg);
 
 	ASSERT_NOT_NULL(config);
 	ASSERT_SAME(resultMsg, SP_CONFIG_SUCCESS);
@@ -108,6 +108,7 @@ static bool configCreateError(const char *filename, SP_CONFIG_MSG expectedMsg) {
 }
 
 int main() {
+	printf("Running SPConfigTest.. \n");
 	RUN_TEST(spConfigNullFilenameTest);
 	RUN_TEST(spConfigMissingFileTest);
 	RUN_TEST(spConfigProperConfigFileTest);

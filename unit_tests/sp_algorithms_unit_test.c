@@ -81,6 +81,7 @@ static bool spSimpleNearestNeighboutTest() {
 	spKDArrayDestroy(kdArray);
 	spKDTreeDestroy(treeRoot);
 	spBPQueueDestroy(queue);
+	spPointDestroy(searchedPoint);
 	return true;
 }
 
@@ -95,5 +96,6 @@ static bool peekEqualsAndDequeue(SPBPQueue queue, int index, double value) {
 }
 
 int main() {
+	printf("Running SPAlgorithmsTest.. \n");
 	RUN_TEST(spSimpleNearestNeighboutTest);
 }

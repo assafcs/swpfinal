@@ -38,4 +38,6 @@ KeyToValue *spParameterReaderNext(SPParameterReader parameterReader, SP_PARAMETE
 
 bool spParameterReaderHasNext(SPParameterReader parameterReader);
 
+void spParameterReaderKeyToValueDestroy(KeyToValue *keyToValue, bool destroyValue);
+
 #endif /* SPPARAMETERREADER_H_ */

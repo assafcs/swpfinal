@@ -76,15 +76,13 @@ int comparePointsCoodinates(const void *aIndexToValuePtr, const void *bIndexToVa
  */
 int *sortedIndices(SPPoint *pointsArray, int size, int axis) {
 	int i;
-	IndexToValue indexToValue;
 	IndexToValue *indicesToValues = (IndexToValue *) malloc(sizeof(IndexToValue) * size);
 	int *indicesArray = (int *) malloc (sizeof(int) * size);
 	if (indicesToValues == NULL || indicesArray == NULL) {
 		return NULL;
 	}
 	for (i = 0; i < size; i++) {
-		indexToValue = (IndexToValue){i, spPointGetAxisCoor(pointsArray[i], axis)};
-		indicesToValues[i] = indexToValue;
+		indicesToValues[i] = (IndexToValue){i, spPointGetAxisCoor(pointsArray[i], axis)};
 	}
 	qsort(indicesToValues, size, sizeof(IndexToValue), comparePointsCoodinates);
 
@@ -130,15 +128,12 @@ SPPoint *copyPointsArray(SPPoint *pointsArray, int size) {
  *
  */
 void spKDArrayFreeIndicesMatrix(int **indicesMatrix, int rows) {
-	int i, *row;
+	int i;
 	if (indicesMatrix == NULL) {
 		return;
 	}
 	for (i = 0; i < rows; i++) {
-		row = indicesMatrix[i];
-		if (row != NULL) {
-			free(row);
-		}
+		free(indicesMatrix[i]);
 	}
 	free(indicesMatrix);
 }
@@ -248,12 +243,11 @@ SPKDArray spKDArrayInit(SPPoint *arr, int size) {
 	if (arr == NULL || size <= 0) {
 		return NULL;
 	}
-	int pointsDimension = spPointGetDimension(arr[0]);
-	SPKDArray kdArray = (SPKDArray ) malloc(sizeof(*kdArray));
+	SPKDArray kdArray = (SPKDArray) malloc(sizeof(*kdArray));
 	if (kdArray == NULL) {
 		return NULL;
 	}
-	int **indicesMatrix = createIndicesMatrix(arr, size, pointsDimension);
+	int **indicesMatrix = createIndicesMatrix(arr, size, spPointGetDimension(arr[0]));
 	if (indicesMatrix == NULL) {
 		spKDArrayDestroy(kdArray);
 		return NULL;
@@ -467,7 +461,6 @@ double spKDArrayGetSpread(SPKDArray kdArr, int coor) {
 
 double spKDArrayGetMedian(SPKDArray kdArr, int coor) {
 	int pointsDim, arrSize;
-	int **indicesMatrix;
 	int *sortedIndices = NULL;
 	SPPoint medianPoint;
 	if (kdArr == NULL) {
@@ -475,7 +468,6 @@ double spKDArrayGetMedian(SPKDArray kdArr, int coor) {
 	}
 	pointsDim = spKDArrayGetPointsDimension(kdArr);
 	arrSize = kdArr->size;
-	indicesMatrix = kdArr->indicesMatrix;
 	if (arrSize <= 0) {
 		// Empty array..
 		return -1;
@@ -484,7 +476,7 @@ double spKDArrayGetMedian(SPKDArray kdArr, int coor) {
 		// Invalid argument
 		return -1;
 	}
-	sortedIndices = indicesMatrix[coor];
+	sortedIndices = kdArr->indicesMatrix[coor];
 	medianPoint = kdArr->pointsArray[sortedIndices[(arrSize - 1) / 2]];
 	return spPointGetAxisCoor(medianPoint, coor);
 }

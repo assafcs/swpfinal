@@ -36,13 +36,22 @@ SPPoint twoDPoint(double x, double y) {
 	double *pointData = (double *) malloc(2 * sizeof(double));
 	pointData[0] = x;
 	pointData[1] = y;
-	return spPointCreate(pointData, 2, 0);
+	SPPoint point = spPointCreate(pointData, 2, 0);
+	free(pointData);
+	return point;
 }
 
 SPPoint threeDPoint(double x, double y, double z) {
+	return indexedThreeDPoint(0, x, y, z);
+}
+
+SPPoint indexedThreeDPoint(int index, double x, double y, double z) {
 	double *pointData = (double *) malloc(3 * sizeof(double));
 	pointData[0] = x;
 	pointData[1] = y;
 	pointData[2] = z;
-	return spPointCreate(pointData, 3, 0);
+	SPPoint point = spPointCreate(pointData, 3, index);
+	free(pointData);
+	return point;
 }
+

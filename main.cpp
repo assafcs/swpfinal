@@ -17,6 +17,7 @@ extern "C" {
 #include "SPPoint.h"
 #include "SPLogger.h"
 #include "SPConfig.h"
+#include "sp_kd_tree_factory.h"
 }
 
 #define NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX "Best candidates for - "
@@ -57,11 +58,19 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	ImageProc ip = ImageProc(config);
+	static ImageProc ip = ImageProc(config);
+	FeatureExractionFunction func = [] (char *imagePath, int imageIndex, int *numOfFeaturesExtracted)->SPPoint* {
+		return ip.getImageFeatures(imagePath, imageIndex, numOfFeaturesExtracted);
+	};
 
-	SP_SEARCH_TREE_CREATION_MSG msg;
+	SP_SEARCH_TREE_CREATION_MSG treeCreationMsg;
+	SPKDTreeNode searchTree = spImagesSearchTreeCreate(config, func, &treeCreationMsg);
 
-	SPKDTreeNode searchTree = createImagesSearchTree(config, &msg);
+	if (treeCreationMsg != SP_SEARCH_TREE_CREATION_SUCCESS) {
+		printf("Somothing went wrong with tree build"); // TODO: remove this print
+		return 1;
+	}
+
 
 	char imageQueryPath[LINE_MAX_SIZE];
 	int resultsCount;
@@ -75,12 +84,14 @@ int main(int argc, char *argv[]) {
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
 			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
+			printf("Results count: %d \n", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
-				if (spConfigGetMinimalGuiPreference(config)){
-					//ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
-				} else {
-					//printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
-				}
+				printf("%d ", similarImages[i]);
+//				if (spConfigGetMinimalGuiPreference(config)){
+//					//ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
+//				} else {
+//					//printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
+//				}
 			}
 			printf("\n");
 

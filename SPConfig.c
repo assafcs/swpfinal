@@ -152,14 +152,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
 		default:
 			break;
 		}
-
-		if (currentParameter != NULL) {
-			free(currentParameter->key);
-			if (!usedValueAsString) {
-				free(currentParameter->value);
-			}
-			free(currentParameter);
-		}
+		spParameterReaderKeyToValueDestroy(currentParameter, !usedValueAsString);
 	}
 	char errorMessage[MAXIMUM_R_ERROR_MSG_LENGTH];
 	if ((requiredFieldsBitMask & IMAGES_DIRECTORY_BIT_MASK) == 0x00) {
