@@ -5,10 +5,6 @@
 #include <stdio.h>
 #include "SPLogger.h"
 
-#define DEFAULT_CONFIG_FILENAME "spcbir.config"
-#define LINE_MAX_SIZE 1024
-static const int MAX_PATH_LENGTH = 100;
-
 /**
  * A data-structure which is used for configuring the system.
  */

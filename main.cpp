@@ -9,7 +9,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string.h>
-#include "main_aux.h"
 #include "SPImageProc.h"
 extern "C" {
 #include "SPLogger.h"
@@ -18,6 +17,7 @@ extern "C" {
 #include "SPLogger.h"
 #include "SPConfig.h"
 #include "sp_kd_tree_factory.h"
+#include "sp_similar_images_search_api.h"
 }
 
 #define NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX "Best candidates for - "
@@ -29,6 +29,8 @@ extern "C" {
 #define EXIT_MESSAGE "Exiting...\n"
 
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
+
+using namespace sp;
 
 int main(int argc, char *argv[]) {
 
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	static ImageProc ip = ImageProc(config);
-	FeatureExractionFunction func = [] (char *imagePath, int imageIndex, int *numOfFeaturesExtracted)->SPPoint* {
+	FeatureExractionFunction func = [] (const char *imagePath, int imageIndex, int *numOfFeaturesExtracted)->SPPoint* {
 		return ip.getImageFeatures(imagePath, imageIndex, numOfFeaturesExtracted);
 	};
 
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]) {
 			if (!spConfigGetMinimalGuiPreference(config)){
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
-			int *similarImages = findSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, ip);
+			int *similarImages = spFindSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, func);
 			printf("Results count: %d \n", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
 				printf("%d ", similarImages[i]);

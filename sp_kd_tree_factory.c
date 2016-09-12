@@ -99,7 +99,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_
 
 
 SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_CREATION_MSG *msg,
-		SPPoint *(*featureExactionFunction)(char *, int, int *)) {
+		 FeatureExractionFunction featureExactionFunction) {
 	char *imagePath = NULL, *featuresPath = NULL;
 	SPPoint *allFeatures = NULL;
 

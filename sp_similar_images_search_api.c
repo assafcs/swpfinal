@@ -1,16 +1,14 @@
 /*
- * main_aux.cpp
+ * sp_similar_images_search_api.c
  *
- *  Created on: Jul 27, 2016
+ *  Created on: Sep 12, 2016
  *      Author: mataneilat
  */
 
+#include "sp_similar_images_search_api.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "SPImageProc.h"
-#include "main_aux.h"
-extern "C" {
 #include "SPBPriorityQueue.h"
 #include "sp_algorithms.h"
 #include "SPKDArray.h"
@@ -18,13 +16,11 @@ extern "C" {
 #include "SPPoint.h"
 #include "SPLogger.h"
 #include "SPConfig.h"
-#include "sp_features_file_api.h"
-}
 
-struct HitInfo {
+typedef struct hit_info_t {
    int index;
    int hits;
-};
+} HitInfo;
 
 int cmpHitInfos(const void * a, const void * b) {
 	HitInfo aInfo = *(HitInfo*)a;
@@ -36,7 +32,8 @@ int cmpHitInfos(const void * a, const void * b) {
 	return aInfo.index - bInfo.index;
 }
 
-int *findSimilarImagesIndices(const SPConfig config, const char *queryImagePath, const SPKDTreeNode searchTree, int *resultsCount, ImageProc ip) {
+int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
+		const SPKDTreeNode searchTree, int *resultsCount, FeatureExractionFunction extractionFunc) {
 	if (config == NULL || searchTree == NULL || resultsCount == NULL) {
 		return NULL;
 	}
@@ -61,13 +58,13 @@ int *findSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
 	}
 
 	for (int i = 0; i < numOfImages; i++) {
-		struct HitInfo info = {i, 0};
+		HitInfo info = (HitInfo) {i, 0};
 		hitInfos[i] = info;
 	}
 
 	int numOfFeaturesExtracted;
 
-	SPPoint *features = ip.getImageFeatures(queryImagePath, 0, &numOfFeaturesExtracted);
+	SPPoint *features = extractionFunc(queryImagePath, 0, &numOfFeaturesExtracted);
 
 	if (features == NULL || numOfFeaturesExtracted <= 0) {
 		free(hitInfos);
@@ -107,5 +104,5 @@ int *findSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
 	free(hitInfos);
 	*resultsCount = similarImages;
 	return resValue;
-}
 
+}

@@ -11,8 +11,7 @@
 #include <stdlib.h>
 #include "SPKDTree.h"
 #include "SPConfig.h"
-
-typedef SPPoint *(*FeatureExractionFunction)(char *, int, int *);
+#include "sp_constants.h"
 
 typedef enum sp_search_tree_creation_msg_t {
 	SP_SEARCH_TREE_CREATION_FEATURES_CONFIGUATION_ERROR,

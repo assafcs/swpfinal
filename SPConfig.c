@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include "sp_constants.h"
 
 #define CONFIG_FILE_COULD_NOT_BE_OPENED_PREFIX "The configuration file "
 #define CONFIG_FILE_COULD_NOT_BE_OPENED_SUFFIX " couldn't be open\n"
