@@ -20,7 +20,7 @@
  *	NULL is an allocation failure occurred.
  *	Otherwise returns the duplicated string.
  */
-char *strDuplicate(char *str) {
+char *strDuplicate(const char *str) {
 	char *duplicate = malloc((strlen(str) + 1) * sizeof(char));
 	if (duplicate == NULL) {
 		return NULL;
@@ -31,7 +31,7 @@ char *strDuplicate(char *str) {
 
 /*** Public Methods ***/
 
-char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
+char **spUtilStrSplit(const char* str, const char delim, int *stringsCount) {
 
 	int i, j, tokenIdx, resultIdx, count = 0, strLen = strlen(str);
     char **result, *token, *tokenDup = NULL;
@@ -94,10 +94,10 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount) {
 }
 
 
-char *spUtilStrJoin(char **strs, int stringsCount, const char delim) {
+char *spUtilStrJoin(const char **strs, int stringsCount, const char delim) {
 	int i, j, resultIdx = 0, totalLength = 0;
 	char *result;
-	char *currentStr = NULL;
+	const char *currentStr;
 	if (strs == NULL) {
 		return NULL;
 	}

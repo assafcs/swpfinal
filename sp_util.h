@@ -39,7 +39,7 @@ static const int TOKEN_MAX_LEN = 100;
  * 	NULL if the given string is NULL, empty, or an allocation failure occurred.
  * 	Otherwise, returns the split strings.
  */
-char **spUtilStrSplit(char* str, const char delim, int *stringsCount);
+char **spUtilStrSplit(const char* str, const char delim, int *stringsCount);
 
 /**
  * Joins the given strings array using the delimiter character between them.
@@ -53,7 +53,7 @@ char **spUtilStrSplit(char* str, const char delim, int *stringsCount);
  * 	Otherwise, returns the joined string, meaning a string which is the concatenation of the strings in the array,
  * 	using the given delimiter as a separator.
  */
-char *spUtilStrJoin(char **strs, int stringsCount, const char delim);
+char *spUtilStrJoin(const char **strs, int stringsCount, const char delim);
 
 /**
  * Deallocates a given strings array.

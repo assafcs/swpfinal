@@ -99,11 +99,12 @@ static bool spUtilSimpleJoinTest() {
 	strs[3] = "Four";
 	strs[4] = "5";
 
-	joinedString = spUtilStrJoin(strs, numberOfStrings, '^');
+	joinedString = spUtilStrJoin((const char **)strs, numberOfStrings, '^');
 
 	ASSERT_NOT_NULL(joinedString);
 	ASSERT_STRING_EQUAL(joinedString, "1^Two^3^Four^5");
 
+	free(strs);
 	free(joinedString);
 	return true;
 }
@@ -114,16 +115,18 @@ static bool spUtilJoinSingleStringTest() {
 	char **strs = (char **) malloc(numberOfStrings * sizeof(char *));
 	strs[0] = "1";
 
-	joinedString = spUtilStrJoin(strs, numberOfStrings, '^');
+	joinedString = spUtilStrJoin((const char **)strs, numberOfStrings, '^');
 
 	ASSERT_NOT_NULL(joinedString);
 	ASSERT_STRING_EQUAL(joinedString, "1");
 
+	free(strs);
 	free(joinedString);
 	return true;
 }
 
 int main() {
+	printf("Running SPUtilTest..");
 	RUN_TEST(spUtilSimpleSplitTest);
 	RUN_TEST(spUtilSplitWithEmptyEdgeStringsTest);
 	RUN_TEST(spUtilSplitSingleDelimiterTest);
