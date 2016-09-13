@@ -65,10 +65,10 @@ int main(int argc, char *argv[]) {
 		return ip.getImageFeatures(imagePath, imageIndex, numOfFeaturesExtracted);
 	};
 
-	SP_SEARCH_TREE_CREATION_MSG treeCreationMsg;
-	SPKDTreeNode searchTree = spImagesSearchTreeCreate(config, func, &treeCreationMsg);
+	SP_KD_TREE_CREATION_MSG treeCreationMsg;
+	SPKDTreeNode searchTree = spImagesKDTreeCreate(config, func, &treeCreationMsg);
 
-	if (treeCreationMsg != SP_SEARCH_TREE_CREATION_SUCCESS) {
+	if (treeCreationMsg != SP_KD_TREE_CREATION_SUCCESS) {
 		printf("Somothing went wrong with tree build"); // TODO: remove this print
 		return 1;
 	}
