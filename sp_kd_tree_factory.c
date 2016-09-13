@@ -13,11 +13,8 @@
 #include "sp_kd_tree_factory.h"
 
 const SP_SEARCH_TREE_CREATION_MSG CREATE_MSG_FOR_FEATURE_API_MSG[] = {
-	SP_SEARCH_TREE_CREATION_FEATURES_CONFIGUATION_ERROR,
-	SP_SEARCH_TREE_CREATION_FEATURES_EXTRACTION_ERROR,
 	SP_SEARCH_TREE_CREATION_INVALID_ARGUMENT,
 	SP_SEARCH_TREE_CREATION_FEATURE_FILE_MISSING,
-	SP_SEARCH_TREE_CREATION_CONFIG_ERROR,
 	SP_SEARCH_TREE_CREATION_ALLOC_FAIL,
 	SP_SEARCH_TREE_CREATION_WRITE_ERROR,
 	SP_SEARCH_TREE_CREATION_LOAD_ERROR,
@@ -69,7 +66,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TREE_
 			return NULL;
 		}
 		SP_FEATURES_FILE_API_MSG featuresAPIMsg;
-		SPPoint *features = loadFeatures(featuresPath, imageIndex, expectedDimension, &numOfFeaturesLoaded, &featuresAPIMsg);
+		SPPoint *features = spFeaturesFileAPILoad(featuresPath, imageIndex, expectedDimension, &numOfFeaturesLoaded, &featuresAPIMsg);
 		if (featuresAPIMsg != SP_FEATURES_FILE_API_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
 			*msg = CREATE_MSG_FOR_FEATURE_API_MSG[featuresAPIMsg];
@@ -135,7 +132,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_SEARCH_TR
 		}
 
 		totalFeaturesCount += numOfFeaturesExtracted;
-		SP_FEATURES_FILE_API_MSG featuresFileAPIMsg = writeFeatures(featuresPath, features, numOfFeaturesExtracted);
+		SP_FEATURES_FILE_API_MSG featuresFileAPIMsg = spFeaturesFileAPIWrite(featuresPath, features, numOfFeaturesExtracted);
 
 		if (featuresFileAPIMsg != SP_FEATURES_FILE_API_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
