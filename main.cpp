@@ -25,6 +25,8 @@ extern "C" {
 
 #define INVALID_COMMAND_LINE_TEXT "Invalid command line : use -c <config_filename>\n"
 
+#define ENDING_QUERIES_STRING "<>"
+
 #define QUERY_IMAGE_INPUT "Please enter an image path:\n"
 #define EXIT_MESSAGE "Exiting...\n"
 
@@ -32,7 +34,13 @@ extern "C" {
 
 using namespace sp;
 
+void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImagePath);
+
 int main(int argc, char *argv[]) {
+
+	// init with nulls for destroy methods
+	SPKDTreeNode searchTree = NULL;
+	char *currentResultImagePath = NULL;
 
 	// Input validation and in case of no config, default config file setting
 	char filename[LINE_MAX_SIZE];
@@ -55,8 +63,16 @@ int main(int argc, char *argv[]) {
 
 	// Creating logger
 	SP_LOGGER_MSG loggerMSG = spLoggerCreate(spConfigGetLoggerFilename(config), spConfigGetLoggerLevel(config));
-	if (loggerMSG == SP_LOGGER_CANNOT_OPEN_FILE){
-		printf(SP_LOGGER_CANNOT_OPEN_FILE_TEXT);
+	if (loggerMSG != SP_LOGGER_SUCCESS){
+		switch (loggerMSG) {
+			case SP_LOGGER_CANNOT_OPEN_FILE:
+				printf(SP_LOGGER_CANNOT_OPEN_FILE_TEXT);
+				break;
+			case SP_LOGGER_OUT_OF_MEMORY:
+				printf(ALLOCATION_ERROR_MSG);
+				break;
+		}
+		freeAll(config, searchTree, currentResultImagePath);
 		return 1;
 	}
 
@@ -66,42 +82,53 @@ int main(int argc, char *argv[]) {
 	};
 
 	SP_KD_TREE_CREATION_MSG treeCreationMsg;
-	SPKDTreeNode searchTree = spImagesKDTreeCreate(config, func, &treeCreationMsg);
+	searchTree = spImagesKDTreeCreate(config, func, &treeCreationMsg);
 
 	if (treeCreationMsg != SP_KD_TREE_CREATION_SUCCESS) {
-		printf("Somothing went wrong with tree build"); // TODO: remove this print
+		freeAll(config, searchTree, currentResultImagePath);
+		//printf("Something went wrong with tree build"); // TODO: remove this print
 		return 1;
 	}
 
 
 	char imageQueryPath[LINE_MAX_SIZE];
 	int resultsCount;
+	char *currentResultImagePath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));;
 	while (true){
 		printf(QUERY_IMAGE_INPUT);
 		scanf("%s", imageQueryPath);
-		if (strcmp(imageQueryPath, "<>") == 0) {
+		if (strcmp(imageQueryPath, ENDING_QUERIES_STRING) == 0) {
 			break;
 		} else {
 			if (!spConfigGetMinimalGuiPreference(config)){
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
 			int *similarImages = spFindSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, func);
-			printf("Results count: %d \n", resultsCount);
+			//printf("Results count: %d \n", resultsCount);
 			for (int i = 0; i < resultsCount; i++) {
+				spConfigGetImagePath(currentResultImagePath, config, similarImages[i]);
+
 				printf("%d ", similarImages[i]);
-//				if (spConfigGetMinimalGuiPreference(config)){
-//					//ip.showImage(spConfigGetSpecificImagePath(config, similarImages[i]));
-//				} else {
-//					//printf("%s%s", spConfigGetSpecificImagePath(config, similarImages[i]), "\n");
-//				}
+				if (spConfigGetMinimalGuiPreference(config)){
+					ip.showImage(currentResultImagePath);
+				} else {
+					printf("%s%s", currentResultImagePath, "\n");
+				}
 			}
 			printf("\n");
 
 		}
-	// TODO: free everything
 	}
+	freeAll(config, searchTree, currentResultImagePath);
 	printf(EXIT_MESSAGE);
 	return 0;
+}
+
+void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImagePath){
+	spConfigDestroy(config);
+	spLoggerDestroy();
+	spKDTreeDestroy(searchTree);
+	free(currentResultImagePath);
 }
 
 
