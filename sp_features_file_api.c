@@ -149,26 +149,26 @@ SP_FEATURES_FILE_API_MSG writeNumberOfFeatures(FILE* featuresFile, int numOfFeat
  * 		SP_FEATURES_FILE_API_SUCCESS				- In case of successful write.
  */
 SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
-	int dim = spPointGetDimension(feature);
+	int i, numOfChars, dim = spPointGetDimension(feature);
+	char *pointCoordinate = NULL, *joinedCoordinates = NULL;
+	double coordinate;
+	SP_FEATURES_FILE_API_MSG returnMsg;
 	char **pointCoordinates = (char **) malloc(dim * sizeof(*pointCoordinates));
 	if (pointCoordinates == NULL) {
 		return SP_FEATURES_FILE_API_ALLOC_FAIL;
 	}
-	for (int i = 0; i < dim; i++) {
-		double coordinate = spPointGetAxisCoor(feature, i);
-		char *pointCoordinate = (char *) malloc(MAX_FEATURE_COORDINATE_STRING_LEN * sizeof(char));
-		int numOfChars = sprintf(pointCoordinate, "%f", coordinate);
-		if (pointCoordinate == NULL || numOfChars == 0 || numOfChars > MAX_FEATURE_COORDINATE_STRING_LEN - 1) {
-			for (int j = 0; j < i; j++) {
-				free(pointCoordinates[i]);
-			}
-			free(pointCoordinates);
+	for (i = 0; i < dim; i++) {
+		coordinate = spPointGetAxisCoor(feature, i);
+		numOfChars = asprintf(&pointCoordinate, "%f", coordinate);
+		if (pointCoordinate == NULL || numOfChars <= 0) {
+			spUtilFreeStringsArray(pointCoordinates, i);
+			free(pointCoordinate);
 			return SP_FEATURES_FILE_API_INVALID_ARGUMENT;
 		}
 		pointCoordinates[i] = pointCoordinate;
 	}
-	SP_FEATURES_FILE_API_MSG returnMsg = SP_FEATURES_FILE_API_SUCCESS;
-	char *joinedCoordinates = spUtilStrJoin((const char **)pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
+	returnMsg = SP_FEATURES_FILE_API_SUCCESS;
+	joinedCoordinates = spUtilStrJoin((const char **)pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
 	if (joinedCoordinates == NULL) {
 		returnMsg = SP_FEATURES_FILE_API_ALLOC_FAIL;
 	} else {
@@ -177,10 +177,7 @@ SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 		}
 	}
 	free(joinedCoordinates);
-	for (int i = 0; i < dim; i++) {
-		free(pointCoordinates[i]);
-	}
-	free(pointCoordinates);
+	spUtilFreeStringsArray(pointCoordinates, dim);
 	return returnMsg;
 }
 
@@ -229,24 +226,27 @@ SPPoint *spFeaturesFileAPILoad(const char *filePath, int index, int expectedFeat
 }
 
 SP_FEATURES_FILE_API_MSG spFeaturesFileAPIWrite(const char *filePath, const SPPoint *features, int numOfFeatures) {
+	int i;
+	FILE *featuresFile;
+	SP_FEATURES_FILE_API_MSG msg;
+
 	if (filePath == NULL || features == NULL || numOfFeatures <= 0) {
 		return SP_FEATURES_FILE_API_INVALID_ARGUMENT;
 	}
-	FILE *featuresFile = fopen(filePath, "w");
+	featuresFile = fopen(filePath, "w");
 	if (featuresFile == NULL) {
 		return SP_FEATURES_FILE_API_WRITE_ERROR;
 	}
 
-	SP_FEATURES_FILE_API_MSG msg = writeNumberOfFeatures(featuresFile, numOfFeatures);
+	msg = writeNumberOfFeatures(featuresFile, numOfFeatures);
 	if (msg != SP_FEATURES_FILE_API_SUCCESS) {
 		fclose(featuresFile);
 		remove(filePath);
 		return msg;
 	}
 
-	for (int i = 0; i < numOfFeatures; i++) {
-		SPPoint feature = features[i];
-		msg = writeFeature(featuresFile, feature);
+	for (i = 0; i < numOfFeatures; i++) {
+		msg = writeFeature(featuresFile, features[i]);
 		if (msg != SP_FEATURES_FILE_API_SUCCESS) {
 			fclose(featuresFile);
 			remove(filePath);

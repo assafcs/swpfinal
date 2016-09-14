@@ -26,8 +26,6 @@ sp_similar_images_search_api.o: sp_similar_images_search_api.c sp_similar_images
 	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_util.o: sp_util.c sp_util.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
-sp_features_file_api.o: sp_features_file_api.c sp_features_file_api.h
-	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_algorithms.o: sp_algorithms.c sp_algorithms.h SPBPriorityQueue.h SPKDTree.h SPPoint.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_features_file_api.o: sp_features_file_api.c sp_features_file_api.h

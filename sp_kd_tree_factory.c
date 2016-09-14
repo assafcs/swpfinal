@@ -141,10 +141,10 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREATION_MSG *msg,
 		 FeatureExractionFunction featureExactionFunction) {
 	char *imagePath = NULL, *featuresPath = NULL;
-	SPPoint *allFeatures = NULL;
-
+	SPPoint *allFeatures = NULL, *features = NULL;
 	SP_CONFIG_MSG resultMSG;
-	int numOfImages = spConfigGetNumOfImages(config, &resultMSG);
+	SP_FEATURES_FILE_API_MSG featuresFileAPIMsg;
+	int i, imageIndex, numOfFeaturesExtracted, totalFeaturesCount = 0, numOfImages = spConfigGetNumOfImages(config, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
 		*msg = SP_KD_TREE_CREATION_CONFIG_ERROR;
 		return NULL;
@@ -158,24 +158,22 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 		*msg = SP_KD_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
 	}
-	int numOfFeaturesExtracted;
-	int totalFeaturesCount = 0;
-	for (int imageIndex = 0; imageIndex < numOfImages; imageIndex++) {
+
+	for (imageIndex = 0; imageIndex < numOfImages; imageIndex++) {
 		if (spConfigGetImagePath(imagePath, config, imageIndex) != SP_CONFIG_SUCCESS ||
 				spConfigGetImageFeaturesPath(featuresPath, config, imageIndex) != SP_CONFIG_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
 			*msg = SP_KD_TREE_CREATION_CONFIG_ERROR;
 			return NULL;
 		}
-		SPPoint *features = featureExactionFunction(imagePath, imageIndex, &numOfFeaturesExtracted);
+		features = featureExactionFunction(imagePath, imageIndex, &numOfFeaturesExtracted);
 		if (features == NULL || numOfFeaturesExtracted <= 0) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
 			*msg = SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
 			return NULL;
 		}
 
-		totalFeaturesCount += numOfFeaturesExtracted;
-		SP_FEATURES_FILE_API_MSG featuresFileAPIMsg = spFeaturesFileAPIWrite(featuresPath, features, numOfFeaturesExtracted);
+		featuresFileAPIMsg = spFeaturesFileAPIWrite(featuresPath, features, numOfFeaturesExtracted);
 
 		if (featuresFileAPIMsg != SP_FEATURES_FILE_API_SUCCESS) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
@@ -184,6 +182,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 			return NULL;
 		}
 
+		totalFeaturesCount += numOfFeaturesExtracted;
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
@@ -192,9 +191,10 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 			return NULL;
 		}
 
-		for (int i = 0; i < numOfFeaturesExtracted; i++) {
+		for (i = 0; i < numOfFeaturesExtracted; i++) {
 			allFeatures[totalFeaturesCount - numOfFeaturesExtracted + i] = features[i];
 		}
+		free(features);
 	}
 
 	free(imagePath);
@@ -244,37 +244,40 @@ SPPoint *getAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREAT
 SPKDTreeNode spImagesKDTreeCreate(const SPConfig config,
 		FeatureExractionFunction featureExtractionFunction,
 		SP_KD_TREE_CREATION_MSG *msg) {
+
+	SPPoint *allFeatures = NULL;
+	int totalFeaturesCount = 0;
+	SPKDArray kdArray;
+	SP_CONFIG_MSG configMsg;
+	SP_TREE_SPLIT_METHOD splitMethod;
+	SPKDTreeNode tree;
 	if (config == NULL || featureExtractionFunction == NULL || msg == NULL) {
 		*msg = SP_KD_TREE_CREATION_INVALID_ARGUMENT;
 		return NULL;
 	}
-
-	SPPoint *allFeatures = NULL;
-
-	int totalFeaturesCount;
 	allFeatures = getAllFeatures(config, &totalFeaturesCount, msg, featureExtractionFunction);
 	if (allFeatures == NULL || totalFeaturesCount <= 0 || *msg != SP_KD_TREE_CREATION_SUCCESS) {
 		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 		return NULL;
 	}
-
-	SPKDArray kdArray = spKDArrayInit(allFeatures, totalFeaturesCount);
+	kdArray = spKDArrayInit(allFeatures, totalFeaturesCount);
 	if (kdArray == NULL) {
 		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 		return NULL;
 	}
-	SP_CONFIG_MSG configMsg;
-	SP_TREE_SPLIT_METHOD splitMethod = spConfigGetSplitMethod(config, &configMsg);
+	splitMethod = spConfigGetSplitMethod(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS) {
 		spKDArrayDestroy(kdArray);
 		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 		return NULL;
 	}
-	SPKDTreeNode tree = spKDTreeBuild(kdArray, splitMethod);
+	tree = spKDTreeBuild(kdArray, splitMethod);
 	if (tree == NULL) {
 		spKDArrayDestroy(kdArray);
 		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 		return NULL;
 	}
+	spKDArrayDestroy(kdArray);
+	destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 	return tree;
 }

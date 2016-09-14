@@ -1,0 +1,4 @@
+spImagesDirectory = ./test_resources/
+   spImagesPrefix= sp
+spImagesSuffix = .img
+spNumOfImages = 3
