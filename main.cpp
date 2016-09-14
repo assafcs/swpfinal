@@ -105,8 +105,21 @@ int main(int argc, char *argv[]) {
 			if (!spConfigGetMinimalGuiPreference(config)){
 				printf("%s%s%s", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
-			int *similarImages = spFindSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, func);
-			//printf("Results count: %d \n", resultsCount);
+
+			SP_SIMILAR_IMAGES_SEARCH_API_MSG queryMsg;
+			int *similarImages = spFindSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, func, &queryMsg);
+
+			if (queryMsg != SP_SIMILAR_IMAGES_SEARCH_API_SUCCESS) {
+				switch (queryMsg) {
+				case SP_SIMILAR_IMAGES_SEARCH_API_FEATURES_EXTRACTION_ERROR:
+					printf("Could not extract features for path '%s'.\n", imageQueryPath);
+					break;
+				default:
+					break;
+				}
+				continue;
+			}
+
 			for (int i = 0; i < resultsCount; i++) {
 				spConfigGetImagePath(currentResultImagePath, config, similarImages[i]);
 

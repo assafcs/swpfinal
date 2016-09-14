@@ -32,28 +32,41 @@ int cmpHitInfos(const void * a, const void * b) {
 	return aInfo.index - bInfo.index;
 }
 
-int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
-		const SPKDTreeNode searchTree, int *resultsCount, FeatureExractionFunction extractionFunc) {
-	if (config == NULL || searchTree == NULL || resultsCount == NULL) {
-		return NULL;
-	}
-	SP_CONFIG_MSG configMsg;
-	int KNN = spConfigGetKNN(config, &configMsg);
+void destroyImageQueryVariables(SPPoint *features, int numOfFeatures, HitInfo *hitInfos) {
+	free(hitInfos);
+	spKDArrayFreePointsArray(features, numOfFeatures);
+}
 
-	if (configMsg != SP_CONFIG_SUCCESS) {
+int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
+		const SPKDTreeNode searchTree, int *resultsCount, FeatureExractionFunction extractionFunc,
+		SP_SIMILAR_IMAGES_SEARCH_API_MSG *msg) {
+	SP_CONFIG_MSG configMsg;
+	int i, j, KNN, numOfImages, similarImages, numOfFeaturesExtracted, *resValue;
+	SPPoint *features;
+	if (config == NULL || queryImagePath == NULL || searchTree == NULL || resultsCount == NULL || extractionFunc == NULL) {
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_INVALID_ARGUMENT;
 		return NULL;
 	}
-	int numOfImages = spConfigGetNumOfImages(config, &configMsg);
+
+	KNN = spConfigGetKNN(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS) {
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_CONFIG_ERROR;
 		return NULL;
 	}
-	int similarImages = spConfigGetNumOfSimilarImages(config, &configMsg);
+	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS) {
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_CONFIG_ERROR;
+		return NULL;
+	}
+	similarImages = spConfigGetNumOfSimilarImages(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS) {
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_CONFIG_ERROR;
 		return NULL;
 	}
 
 	HitInfo* hitInfos = (HitInfo*) malloc(numOfImages * sizeof(HitInfo));
 	if (hitInfos == NULL) {
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
 	}
 
@@ -62,21 +75,26 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 		hitInfos[i] = info;
 	}
 
-	int numOfFeaturesExtracted;
-
-	SPPoint *features = extractionFunc(queryImagePath, 0, &numOfFeaturesExtracted);
+	features = extractionFunc(queryImagePath, 0, &numOfFeaturesExtracted);
 
 	if (features == NULL || numOfFeaturesExtracted <= 0) {
-		free(hitInfos);
+		destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_FEATURES_EXTRACTION_ERROR;
 		return NULL;
 	}
 
 	SPBPQueue queue = spBPQueueCreate(KNN);
-	for (int i = 0; i < numOfFeaturesExtracted; i++) {
+	if (queue == NULL) {
+		destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
+		return NULL;
+	}
+
+	for (i = 0; i < numOfFeaturesExtracted; i++) {
 		SPPoint feature = features[i];
 		spKNearestNeighbours(searchTree, queue, feature);
 		int queueSize = spBPQueueSize(queue);
-		for (int j = 0; j < queueSize; j++) {
+		for (j = 0; j < queueSize; j++) {
 			SPListElement listElement = spBPQueuePeek(queue);
 			int index = spListElementGetIndex(listElement);
 			hitInfos[index].hits++;
@@ -90,19 +108,21 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 
 	qsort(hitInfos, numOfImages, sizeof(HitInfo), cmpHitInfos);
 
-	int* resValue = (int *) malloc(similarImages * sizeof(int));
+	resValue = (int *) malloc(similarImages * sizeof(int));
 
 	if (resValue == NULL) {
-		free(hitInfos);
+		destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
+		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
 	}
 
-	for (int i = 0; i < similarImages; i++) {
+	for (i = 0; i < similarImages; i++) {
 		resValue[i] = hitInfos[i].index;
 	}
 
-	free(hitInfos);
+	destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
 	*resultsCount = similarImages;
+	*msg = SP_SIMILAR_IMAGES_SEARCH_API_SUCCESS;
 	return resValue;
 
 }
