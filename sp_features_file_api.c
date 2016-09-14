@@ -145,7 +145,7 @@ SP_FEATURES_FILE_API_MSG writeNumberOfFeatures(FILE* featuresFile, int numOfFeat
  * 	SP_FEATURES_FILE_API_MSG informing the process result:
  * 		SP_FEATURES_FILE_API_INVALID_ARGUMENT		- In case a feature coordinate base 10 representation is larger than MAX_FEATURE_COORDINATE_STRING_LEN digits.
  * 		SP_FEATURES_FILE_API_WRITE_ERROR			- In case writing to the features file went wrong.
- * 		SP_FEATURES_FILE_API_ALLOC_FAIL				- In case of allocation failure
+ * 		SP_FEATURES_FILE_API_ALLOC_FAIL				- In case of allocation failure.
  * 		SP_FEATURES_FILE_API_SUCCESS				- In case of successful write.
  */
 SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
@@ -168,7 +168,7 @@ SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 		pointCoordinates[i] = pointCoordinate;
 	}
 	SP_FEATURES_FILE_API_MSG returnMsg = SP_FEATURES_FILE_API_SUCCESS;
-	char *joinedCoordinates = spUtilStrJoin(pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
+	char *joinedCoordinates = spUtilStrJoin((const char **)pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
 	if (joinedCoordinates == NULL) {
 		returnMsg = SP_FEATURES_FILE_API_ALLOC_FAIL;
 	} else {
