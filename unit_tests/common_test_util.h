@@ -17,4 +17,6 @@ SPPoint twoDPoint(double x, double y);
 SPPoint threeDPoint(double x, double y, double z);
 SPPoint indexedThreeDPoint(int index, double x, double y, double z);
 
+SPPoint nDPoint(int index, int n, ...);
+
 #endif /* UNIT_TESTS_COMMON_TEST_UTIL_H_ */

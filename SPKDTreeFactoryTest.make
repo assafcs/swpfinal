@@ -12,6 +12,8 @@ sp_kd_tree_factory_unit_test.o: $(TESTS_DIR)/sp_kd_tree_factory_unit_test.c $(TE
 common_test_util.o: $(TESTS_DIR)/common_test_util.c $(TESTS_DIR)/common_test_util.h
 sp_util.o: sp_util.c sp_util.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
+common_test_util.o: $(TESTS_DIR)/common_test_util.c $(TESTS_DIR)/common_test_util.h SPPoint.h
+	$(CC) $(COMP_FLAG) -c $(TESTS_DIR)/common_test_util.c
 sp_features_file_api.o: sp_features_file_api.c sp_features_file_api.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_kd_tree_factory.o: sp_kd_tree_factory.c sp_kd_tree_factory.h sp_features_file_api.h SPKDArray.h SPKDTree.h SPConfig.h sp_constants.h

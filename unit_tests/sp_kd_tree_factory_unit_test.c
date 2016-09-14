@@ -19,20 +19,20 @@ SPPoint *extractionMockFunction(const char *imagePath, int imageIndex, int *numO
 	SPPoint *points;
 	if (strcmp(imagePath, "./test_resources/sp0.img")) {
 		points = (SPPoint *) malloc(2 * sizeof(*points));
-		points[0] = indexedThreeDPoint(imageIndex, 1, 60, -5.5);
-		points[1] = indexedThreeDPoint(imageIndex, 123, 70, -4.5);
+		points[0] = nDPoint(imageIndex, 10, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+		points[1] = nDPoint(imageIndex, 10, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0);
 		*numOfFacturesExtracted = 2;
 		return points;
 	} else if (strcmp(imagePath, "./test_resources/sp1.img")) {
 		points = (SPPoint *) malloc(2 * sizeof(*points));
-		points[0] = indexedThreeDPoint(imageIndex, 2, 80, 4.5);
-		points[1] = indexedThreeDPoint(imageIndex, 9, 140.5, 7.5);
+		points[0] = nDPoint(imageIndex, 10, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0);
+		points[1] = nDPoint(imageIndex, 10, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0, 38.0, 39.0, 40.0);
 		*numOfFacturesExtracted = 2;
 		return points;
 	} else if (strcmp(imagePath, "./test_resources/sp2.img")) {
 		points = (SPPoint *) malloc(sizeof(*points));
-		points[0] = indexedThreeDPoint(imageIndex, 3, 8, 133.5);
-		*numOfFacturesExtracted = 2;
+		points[0] = nDPoint(imageIndex, 10, 41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0 ,48.0, 49.0, 50.0);
+		*numOfFacturesExtracted = 1;
 		return points;
 	}
 	*numOfFacturesExtracted = 0;
@@ -57,7 +57,26 @@ static bool kdTreeFactoryCreationTest() {
 	return true;
 }
 
+static bool kdTreeFactoryCreationAfterLoadTest() {
+	SP_CONFIG_MSG configMsg;
+	SPConfig config = spConfigCreate("./test_resources/tree_factory_test_config_after_load.txt", &configMsg);
+	ASSERT_SAME(configMsg, SP_CONFIG_SUCCESS);
+	ASSERT_NOT_NULL(config);
+
+	SP_KD_TREE_CREATION_MSG treeCreationMsg;
+	SPKDTreeNode searchTree = spImagesKDTreeCreate(config, extractionMockFunction, &treeCreationMsg);
+
+	ASSERT_NOT_NULL(searchTree);
+	ASSERT_SAME(treeCreationMsg, SP_KD_TREE_CREATION_SUCCESS);
+
+	spKDTreeDestroy(searchTree);
+	spConfigDestroy(config);
+	return true;
+}
+
+
 int main() {
 	printf("Running SPKDTreeFactoryTest.. \n");
 	RUN_TEST(kdTreeFactoryCreationTest);
+	RUN_TEST(kdTreeFactoryCreationAfterLoadTest);
 }

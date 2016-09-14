@@ -112,6 +112,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 		for (i = 0; i < numOfFeaturesLoaded; i++) {
 			allFeatures[totalFeaturesCount - numOfFeaturesLoaded + i] = features[i];
 		}
+		free(features);
 	}
 
 	free(featuresPath);

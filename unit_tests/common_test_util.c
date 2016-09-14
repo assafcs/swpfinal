@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include "common_test_util.h"
 #include "unit_test_util.h"
 
@@ -51,6 +52,20 @@ SPPoint indexedThreeDPoint(int index, double x, double y, double z) {
 	pointData[1] = y;
 	pointData[2] = z;
 	SPPoint point = spPointCreate(pointData, 3, index);
+	free(pointData);
+	return point;
+}
+
+SPPoint nDPoint(int index, int n, ...) {
+	va_list ap;
+	int i;
+	va_start(ap, n);
+	double *pointData = (double *) malloc(n * sizeof(double));
+	for (i = 0; i < n; i++) {
+		pointData[i] = va_arg(ap, double);
+	}
+	va_end(ap);
+	SPPoint point = spPointCreate(pointData, n, index);
 	free(pointData);
 	return point;
 }

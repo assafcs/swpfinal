@@ -1,0 +1,6 @@
+spImagesDirectory = ./test_resources/
+   spImagesPrefix= sp
+spImagesSuffix = .img
+spNumOfImages = 3
+spExtractionMode = false
+spPCADimension = 10
