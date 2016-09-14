@@ -17,11 +17,26 @@
 #include "SPLogger.h"
 #include "SPConfig.h"
 
+/** Structure to count images 'hits', meaning the amount of times an image's feature was found in nearest neighbor search. */
 typedef struct hit_info_t {
    int index;
    int hits;
 } HitInfo;
 
+
+/*** Private Methods ***/
+
+/**
+ * Compares to HitInfos - to be used by qsort.
+ * First it compares by hits in descending order - meaning higher amount of hits will come before.
+ * If two HitInfos have same amount of hits, than the one with lower index will come before.
+ *
+ * @param a - First HitInfo pointer.
+ * @param b - Second HitInfo pointer.
+ *
+ * @return
+ * 	The compare result.
+ */
 int cmpHitInfos(const void * a, const void * b) {
 	HitInfo aInfo = *(HitInfo*)a;
 	HitInfo bInfo = *(HitInfo*)b;
@@ -32,10 +47,20 @@ int cmpHitInfos(const void * a, const void * b) {
 	return aInfo.index - bInfo.index;
 }
 
+/**
+ * Deallocates variables used in the query method.
+ *
+ * @param features Features array to destroy.
+ * @param numOfFeatures The number of features in the array.
+ * @param hitInfos Array of HitInfos to free.
+ *
+ */
 void destroyImageQueryVariables(SPPoint *features, int numOfFeatures, HitInfo *hitInfos) {
 	free(hitInfos);
 	spKDArrayFreePointsArray(features, numOfFeatures);
 }
+
+/*** Public Methods ***/
 
 int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePath,
 		const SPKDTreeNode searchTree, int *resultsCount, FeatureExractionFunction extractionFunc,
