@@ -68,6 +68,7 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 	SP_CONFIG_MSG configMsg;
 	int i, j, KNN, numOfImages, similarImages, numOfFeaturesExtracted, *resValue;
 	SPPoint *features;
+	HitInfo* hitInfos;
 	if (config == NULL || queryImagePath == NULL || searchTree == NULL || resultsCount == NULL || extractionFunc == NULL) {
 		*msg = SP_SIMILAR_IMAGES_SEARCH_API_INVALID_ARGUMENT;
 		return NULL;
@@ -89,13 +90,13 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 		return NULL;
 	}
 
-	HitInfo* hitInfos = (HitInfo*) malloc(numOfImages * sizeof(HitInfo));
+	hitInfos = (HitInfo*) malloc(numOfImages * sizeof(HitInfo));
 	if (hitInfos == NULL) {
 		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
 	}
 
-	for (int i = 0; i < numOfImages; i++) {
+	for (i = 0; i < numOfImages; i++) {
 		HitInfo info = (HitInfo) {i, 0};
 		hitInfos[i] = info;
 	}
