@@ -71,6 +71,8 @@ int main(int argc, char *argv[]) {
 			case SP_LOGGER_OUT_OF_MEMORY:
 				printf(ALLOCATION_ERROR_MSG);
 				break;
+			default:
+				break;
 		}
 		freeAll(config, searchTree, currentResultImagePath);
 		return 1;
@@ -93,7 +95,7 @@ int main(int argc, char *argv[]) {
 
 	char imageQueryPath[LINE_MAX_SIZE];
 	int resultsCount;
-	char *currentResultImagePath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));;
+	currentResultImagePath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));;
 	while (true){
 		printf(QUERY_IMAGE_INPUT);
 		scanf("%s", imageQueryPath);
