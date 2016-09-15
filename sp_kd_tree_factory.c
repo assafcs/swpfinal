@@ -11,6 +11,7 @@
 #include "sp_features_file_api.h"
 #include "SPKDArray.h"
 #include "sp_kd_tree_factory.h"
+#include "SPLogger.h"
 
 /*** Constants ***/
 
@@ -81,6 +82,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 	allFeatures = (SPPoint *) malloc(1 * sizeof(SPPoint));
 	featuresPath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));
 	if (allFeatures == NULL || featuresPath == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		destroyVariables(allFeatures, 0, NULL, featuresPath);
 		*msg = SP_KD_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
@@ -107,6 +109,7 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
+			spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
 			spKDArrayFreePointsArray(features, numOfFeaturesLoaded);
 			*msg = SP_KD_TREE_CREATION_ALLOC_FAIL;
@@ -167,6 +170,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 	imagePath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));
 	featuresPath = (char *) malloc (MAX_PATH_LENGTH * sizeof(char));
 	if (allFeatures == NULL || imagePath == NULL || featuresPath == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		destroyVariables(allFeatures, 0, imagePath, featuresPath);
 		*msg = SP_KD_TREE_CREATION_ALLOC_FAIL;
 		return NULL;
@@ -201,6 +205,7 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 		totalFeaturesCount += numOfFeaturesExtracted;
 		allFeatures = (SPPoint *) realloc(allFeatures, totalFeaturesCount * sizeof(SPPoint));
 		if (allFeatures == NULL) {
+			spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
 			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
 			*msg = SP_KD_TREE_CREATION_ALLOC_FAIL;

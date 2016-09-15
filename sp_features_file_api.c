@@ -11,6 +11,8 @@
 #include "sp_features_file_api.h"
 #include "SPKDArray.h"
 #include "sp_util.h"
+#include "sp_constants.h"
+#include "SPLogger.h"
 
 /*** Private Methods ***/
 
@@ -71,6 +73,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_FEA
 	char *featureCoordinatesString = (char *) malloc((maxFeatureStringLen + 1) * sizeof(char));
 
 	if (featureCoordinatesString == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		*msg = SP_FEATURES_FILE_API_ALLOC_FAIL;
 		return NULL;
 	}
@@ -155,13 +158,21 @@ SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 	SP_FEATURES_FILE_API_MSG returnMsg;
 	char **pointCoordinates = (char **) malloc(dim * sizeof(*pointCoordinates));
 	if (pointCoordinates == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		return SP_FEATURES_FILE_API_ALLOC_FAIL;
 	}
 	for (i = 0; i < dim; i++) {
 		coordinate = spPointGetAxisCoor(feature, i);
 		pointCoordinate = (char *) malloc(MAX_FEATURE_COORDINATE_STRING_LEN * sizeof(char));
+		if (pointCoordinate == NULL) {
+			spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
+			spUtilFreeStringsArray(pointCoordinates, i);
+			free(pointCoordinate);
+			return SP_FEATURES_FILE_API_ALLOC_FAIL;
+		}
+
 		numOfChars = sprintf(pointCoordinate, "%f", coordinate);
-		if (pointCoordinate == NULL || numOfChars <= 0 || numOfChars > MAX_FEATURE_COORDINATE_STRING_LEN - 1) {
+		if (numOfChars <= 0 || numOfChars > MAX_FEATURE_COORDINATE_STRING_LEN - 1) {
 			spUtilFreeStringsArray(pointCoordinates, i);
 			free(pointCoordinate);
 			return SP_FEATURES_FILE_API_INVALID_ARGUMENT;
@@ -171,7 +182,7 @@ SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 	returnMsg = SP_FEATURES_FILE_API_SUCCESS;
 	joinedCoordinates = spUtilStrJoin((const char **)pointCoordinates, dim, FEATURE_COORDINATES_DELIM);
 	if (joinedCoordinates == NULL) {
-		returnMsg = SP_FEATURES_FILE_API_ALLOC_FAIL;
+		returnMsg = SP_FEATURES_FILE_API_WRITE_ERROR;
 	} else {
 		if (fputs(joinedCoordinates, featureFile) == EOF || fputc('\n', featureFile) == EOF) {
 			returnMsg = SP_FEATURES_FILE_API_WRITE_ERROR;
@@ -202,6 +213,7 @@ SPPoint *spFeaturesFileAPILoad(const char *filePath, int index, int expectedFeat
 
 	SPPoint *features = (SPPoint *) malloc(numberOfFeatures * sizeof(SPPoint));
 	if (features == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		fclose(featuresFile);
 		*msg = SP_FEATURES_FILE_API_ALLOC_FAIL;
 		return NULL;

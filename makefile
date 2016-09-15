@@ -28,7 +28,7 @@ sp_util.o: sp_util.c sp_util.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_algorithms.o: sp_algorithms.c sp_algorithms.h SPBPriorityQueue.h SPKDTree.h SPPoint.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
-sp_features_file_api.o: sp_features_file_api.c sp_features_file_api.h
+sp_features_file_api.o: sp_features_file_api.c sp_features_file_api.h sp_constants.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
 sp_kd_tree_factory.o: sp_kd_tree_factory.c sp_kd_tree_factory.h sp_features_file_api.h SPKDArray.h SPKDTree.h SPConfig.h sp_constants.h
 	$(CC) $(C_COMP_FLAG) -c $*.c

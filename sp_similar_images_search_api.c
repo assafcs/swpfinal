@@ -92,6 +92,7 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 
 	hitInfos = (HitInfo*) malloc(numOfImages * sizeof(HitInfo));
 	if (hitInfos == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
 	}
@@ -111,6 +112,7 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 
 	SPBPQueue queue = spBPQueueCreate(KNN);
 	if (queue == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
 		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
@@ -137,6 +139,7 @@ int *spFindSimilarImagesIndices(const SPConfig config, const char *queryImagePat
 	resValue = (int *) malloc(similarImages * sizeof(int));
 
 	if (resValue == NULL) {
+		spLoggerPrintError(ALLOCATION_ERROR_MSG, __FILE__, __func__, __LINE__);
 		destroyImageQueryVariables(features, numOfFeaturesExtracted, hitInfos);
 		*msg = SP_SIMILAR_IMAGES_SEARCH_API_ALLOC_FAIL;
 		return NULL;
