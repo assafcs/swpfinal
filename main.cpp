@@ -42,15 +42,14 @@ extern "C" {
 #define QUERY_IMAGE_INPUT "Please enter an image path:\n"
 #define EXIT_MESSAGE "Exiting...\n"
 
-#define SP_CONFIG_CREATION_FAILURE_MSG "Could not create configuration."
-#define SP_CONFIG_ACCESS_ERROR "Could not access configuration properly."
+#define SP_CONFIG_ACCESS_ERROR "Could not access configuration properly.\n"
 
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
 
 #define SP_IMAGE_PROC_CREATION_ERROR_MSG "Could not initialize SPImageProc instance."
 
 #define TREE_CREATION_FATAL_ERROR_MSG "Could not initialize kd-tree properly"
-#define TREE_CREATION_NON_FATAL_ERROR_MSG "KD-Tree was created, but some of the operations did not finish successfully. \n"
+#define TREE_CREATION_NON_FATAL_ERROR_MSG "KD-Tree was created, but some of the operations did not finish successfully.\n"
 #define TREE_SUCCESSFULLY_CREATE_MSG "KD-Tree was successfully created"
 
 #define QUERY_IMAGE_SEARCH_FAIL_MSG "Similar images search failed for path:"
@@ -150,7 +149,6 @@ int main(int argc, char *argv[]) {
 
 	SPConfig config = spConfigCreate(filename, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
-		printf(SP_CONFIG_CREATION_FAILURE_MSG);
 		free(filename);
 		return 1;
 	}
