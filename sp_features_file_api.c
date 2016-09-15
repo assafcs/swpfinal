@@ -159,8 +159,9 @@ SP_FEATURES_FILE_API_MSG writeFeature(FILE* featureFile, SPPoint feature) {
 	}
 	for (i = 0; i < dim; i++) {
 		coordinate = spPointGetAxisCoor(feature, i);
-		numOfChars = asprintf(&pointCoordinate, "%f", coordinate);
-		if (pointCoordinate == NULL || numOfChars <= 0) {
+		pointCoordinate = (char *) malloc(MAX_FEATURE_COORDINATE_STRING_LEN * sizeof(char));
+		numOfChars = sprintf(pointCoordinate, "%f", coordinate);
+		if (pointCoordinate == NULL || numOfChars == 0 || numOfChars > MAX_FEATURE_COORDINATE_STRING_LEN - 1) {
 			spUtilFreeStringsArray(pointCoordinates, i);
 			free(pointCoordinate);
 			return SP_FEATURES_FILE_API_INVALID_ARGUMENT;

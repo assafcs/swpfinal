@@ -123,7 +123,6 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < resultsCount; i++) {
 				spConfigGetImagePath(currentResultImagePath, config, similarImages[i]);
 
-				printf("%d ", similarImages[i]);
 				if (spConfigGetMinimalGuiPreference(config)){
 					ip.showImage(currentResultImagePath);
 				} else {
