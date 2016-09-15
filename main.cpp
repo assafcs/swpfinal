@@ -42,6 +42,9 @@ extern "C" {
 #define QUERY_IMAGE_INPUT "Please enter an image path:\n"
 #define EXIT_MESSAGE "Exiting...\n"
 
+#define SP_CONFIG_CREATION_FAILURE_MSG "Could not create configuration."
+#define SP_CONFIG_ACCESS_ERROR "Could not access configuration properly."
+
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
 
 #define SP_IMAGE_PROC_CREATION_ERROR_MSG "Could not initialize SPImageProc instance."
@@ -75,6 +78,32 @@ void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImageP
 }
 
 /**
+ * Creates the logger instance.
+ *
+ * @config The SPConfig instance containing the logger details.
+ * @msg Place-holder for logger creation result.
+ *
+ * @return
+ * 	False if a configuration access error occurred, true otherwise.
+ */
+bool createLogger(const SPConfig config, SP_LOGGER_MSG *msg) {
+	SP_CONFIG_MSG resultMSG;
+	char *loggerFilename = spConfigGetLoggerFilename(config, &resultMSG);
+	if (resultMSG != SP_CONFIG_SUCCESS) {
+		return false;
+	}
+
+	SP_LOGGER_LEVEL loggerLevel = spConfigGetLoggerLevel(config, &resultMSG);
+	if (resultMSG != SP_CONFIG_SUCCESS) {
+		return false;
+	}
+
+	// Creating logger
+	*msg = spLoggerCreate(loggerFilename, loggerLevel);
+	return true;
+}
+
+/**
  * Main Function of SPCBIR.
  * Creates a kd-tree by the configured parameters, and searches for similar images of user's query paths.
  *
@@ -90,13 +119,17 @@ void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImageP
  */
 int main(int argc, char *argv[]) {
 	char logMSG[LOGGER_MSG_LENGTH] = { '\0' };
+
+	int resultsCount;
+	SP_CONFIG_MSG resultMSG;
+
 	// init with nulls for destroy methods
 	SPKDTreeNode searchTree = NULL;
 	static ImageProc *ipPtr = NULL;
-	int resultsCount;
-	// Input validation and in case of no config, default config file setting
+
 	char *currentResultImagePath = NULL, *imageQueryPath = NULL, *filename = (char *) malloc(LINE_MAX_SIZE * sizeof(char));
 
+	// Input validation and in case of no config, default config file setting
 	if (filename == NULL) {
 		printRErrorMsg(__FILE__, __LINE__, ALLOCATION_ERROR_MSG);
 		return 1;
@@ -114,16 +147,23 @@ int main(int argc, char *argv[]) {
 
 	// Creating config file and exiting on failure.
 	// Error messages handling by SPConfig.c
-	SP_CONFIG_MSG resultMSG;
+
 	SPConfig config = spConfigCreate(filename, &resultMSG);
 	if (resultMSG != SP_CONFIG_SUCCESS) {
+		printf(SP_CONFIG_CREATION_FAILURE_MSG);
 		free(filename);
 		return 1;
 	}
 
-	// Creating logger
-	SP_LOGGER_MSG loggerMSG = spLoggerCreate(spConfigGetLoggerFilename(config), spConfigGetLoggerLevel(config));
-	if (loggerMSG != SP_LOGGER_SUCCESS){
+	SP_LOGGER_MSG loggerMSG;
+
+	if (!createLogger(config, &loggerMSG)) {
+		printf(SP_CONFIG_ACCESS_ERROR);
+		freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
+		return 1;
+	}
+
+	if (loggerMSG != SP_LOGGER_SUCCESS) {
 		switch (loggerMSG) {
 			case SP_LOGGER_CANNOT_OPEN_FILE:
 				printf(SP_LOGGER_CANNOT_OPEN_FILE_TEXT);
@@ -181,6 +221,13 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	bool minimalGUI = spConfigMinimalGui(config, &resultMSG);
+	if (resultMSG != SP_CONFIG_SUCCESS) {
+		printf(SP_CONFIG_ACCESS_ERROR);
+		freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
+		return 1;
+	}
+
 	while (true) {
 
 		printf(QUERY_IMAGE_INPUT);
@@ -203,14 +250,14 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (!spConfigGetMinimalGuiPreference(config)) {
+			if (!minimalGUI) {
 				printf("%s%s%s\n", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
 
 			for (int i = 0; i < resultsCount; i++) {
 				spConfigGetImagePath(currentResultImagePath, config, similarImages[i]);
 
-				if (spConfigGetMinimalGuiPreference(config)) {
+				if (minimalGUI) {
 					try {
 						(*ipPtr).showImage(currentResultImagePath);
 					} catch (...) {

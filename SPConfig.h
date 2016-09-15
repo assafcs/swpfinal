@@ -9,10 +9,12 @@
  * A data-structure which is used for configuring the system.
  */
 
+/** The different configurable kdtree split methods. */
 typedef enum sp_tree_split_method_t {
 	TREE_SPLIT_METHOD_RANDOM, TREE_SPLIT_METHOD_MAX_SPREAD, TREE_SPLIT_METHOD_INCREMENTAL
 } SP_TREE_SPLIT_METHOD;
 
+/** Enumeration to communicate possible results for SPConfig methods. */
 typedef enum sp_config_msg_t {
 	SP_CONFIG_MISSING_DIR,
 	SP_CONFIG_MISSING_PREFIX,
@@ -27,6 +29,7 @@ typedef enum sp_config_msg_t {
 	SP_CONFIG_SUCCESS
 } SP_CONFIG_MSG;
 
+/** Type for defining the configuration data-structure. */
 typedef struct sp_config_t* SPConfig;
 
 /**
@@ -51,12 +54,37 @@ typedef struct sp_config_t* SPConfig;
  * - SP_CONFIG_MISSING_NUM_IMAGES - if spNumOfImages is missing
  * - SP_CONFIG_SUCCESS - in case of success
  *
- *
  */
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the directory containing the images.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return The images directory on success, null otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 char *spConfigImagesDirectory(const SPConfig config, SP_CONFIG_MSG *msg);
 
+/*
+ * Returns the prefix of the images filenames.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return The images prefix on success, null otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 char *spConfigImagesPrefix(const SPConfig config, SP_CONFIG_MSG *msg);
 
 /*
@@ -67,6 +95,7 @@ char *spConfigImagesPrefix(const SPConfig config, SP_CONFIG_MSG *msg);
  * @param msg - pointer in which the msg returned by the function is stored
  * @return true if spExtractionMode = true, false otherwise.
  *
+ * The resulting value stored in msg is as follow:
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
  */
@@ -78,8 +107,9 @@ bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg);
  * @param config - the configuration structure
  * @assert msg != NULL
  * @param msg - pointer in which the msg returned by the function is stored
- * @return true if spExtractionMode = true, false otherwise.
+ * @return true if spMinimalGUI = true, false otherwise.
  *
+ * The resulting value stored in msg is as follow:
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
  */
@@ -94,6 +124,7 @@ bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg);
  * @param msg - pointer in which the msg returned by the function is stored
  * @return positive integer in success, negative integer otherwise.
  *
+ * The resulting value stored in msg is as follow:
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
  */
@@ -108,6 +139,7 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg);
  * @param msg - pointer in which the msg returned by the function is stored
  * @return positive integer in success, negative integer otherwise.
  *
+ * The resulting value stored in msg is as follow:
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
  */
@@ -121,15 +153,57 @@ int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg);
  * @param msg - pointer in which the msg returned by the function is stored
  * @return positive integer in success, negative integer otherwise.
  *
+ * The resulting value stored in msg is as follow:
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
  */
 int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the desired tree split method (max_spread, random or incremental).
+ *
+ * NOTICE: The method returns a valid value on failure, so the msg's value must be used for validation.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return The configured split method on success, undefined value otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 SP_TREE_SPLIT_METHOD spConfigGetSplitMethod(const SPConfig config, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the desired number of nearest neighbors required in feature search.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return positive integer in success, negative integer otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 int spConfigGetKNN(const SPConfig config, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the number of similar images to show in the results.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return positive integer in success, negative integer otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 int spConfigGetNumOfSimilarImages(const SPConfig config, SP_CONFIG_MSG* msg);
 
 /**
@@ -178,14 +252,64 @@ SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
  */
 SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 
-char *spConfigGetLoggerFilename(const SPConfig config);
-
-bool spConfigGetMinimalGuiPreference(const SPConfig config);
-
-
-SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config);
-
+/**
+ * Given an index 'index' the function stores in imagePath the full path of the
+ * ith image.
+ *
+ * For example:
+ * Given that the value of:
+ *  spImagesDirectory = "./images/"
+ *  spImagesPrefix = "img"
+ *  spImagesSuffix = ".png"
+ *  spNumOfImages = 17
+ *  index = 10
+ *
+ * The functions stores "./images/img10.png" to the address given by imagePath.
+ * Thus the address given by imagePath must contain enough space to
+ * store the resulting string.
+ *
+ * @param imagePath - an address to store the result in, it must contain enough space.
+ * @param config - the configuration structure
+ * @param index - the index of the image.
+ *
+ * @return
+ * - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
+ * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 SP_CONFIG_MSG spConfigGetImageFeaturesPath(char *featuresPath, const SPConfig config, int index);
+
+/*
+ * Returns the log file name.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return The log file name on success, null otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
+char *spConfigGetLoggerFilename(const SPConfig config, SP_CONFIG_MSG* msg);
+
+/*
+ * Returns the desired logger level (error, error+warning, error+warning+info, error+warning+info+debug).
+ *
+ * NOTICE: The method returns a valid value on failure, so the msg's value must be used for validation.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ *
+ * @return The configured logger level on success, undefined value otherwise.
+ *
+ * The resulting value stored in msg is as follow:
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
+SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config, SP_CONFIG_MSG* msg);
 
 /**
  * Frees all memory resources associate with config. 

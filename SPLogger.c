@@ -92,7 +92,7 @@ SP_LOGGER_MSG spLoggerPrintDebug(const char* msg, const char* file,
 
 SP_LOGGER_MSG spLoggerPrintInfo(const char* msg) {
 	if (logger == NULL){
-		return SP_LOGGER_UNDIFINED;
+		return SP_LOGGER_UNDEFINED;
 	}
 	if (msg == NULL){
 		return SP_LOGGER_INVAlID_ARGUMENT;
@@ -115,7 +115,7 @@ SP_LOGGER_MSG spLoggerPrintInfo(const char* msg) {
 
 SP_LOGGER_MSG spLoggerPrintMsg(const char* msg) {
 	if (logger == NULL){
-		return SP_LOGGER_UNDIFINED;
+		return SP_LOGGER_UNDEFINED;
 	}
 	if (msg == NULL){
 		return SP_LOGGER_INVAlID_ARGUMENT;
@@ -133,7 +133,7 @@ SP_LOGGER_MSG spLoggerPrintMsg(const char* msg) {
 SP_LOGGER_MSG generalLoggerPrint(const char* header, SP_LOGGER_LEVEL minLevel, const char* msg, const char* file,
 		const char* function, const int line) {
 	if (logger == NULL){
-		return SP_LOGGER_UNDIFINED;
+		return SP_LOGGER_UNDEFINED;
 	}
 	if (msg == NULL || file == NULL || function == NULL || line < 0) {
 		return SP_LOGGER_INVAlID_ARGUMENT;

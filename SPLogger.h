@@ -37,7 +37,7 @@ typedef enum sp_logger_msg_t {
 	SP_LOGGER_CANNOT_OPEN_FILE,
 	SP_LOGGER_INVAlID_ARGUMENT,
 	SP_LOGGER_OUT_OF_MEMORY,
-	SP_LOGGER_UNDIFINED,
+	SP_LOGGER_UNDEFINED,
 	SP_LOGGER_DEFINED,
 	SP_LOGGER_WRITE_FAIL,
 	SP_LOGGER_SUCCESS
@@ -99,7 +99,7 @@ void spLoggerDestroy();
  * @param function 	- A string representing the function name in which spLoggerPrintError call ocurred
  * @param line		- A string representing the line in which the function call occurred
  * @return
- * SP_LOGGER_UNDIFINED 			- If the logger is undefined
+ * SP_LOGGER_UNDEFINED 			- If the logger is undefined
  * SP_LOGGER_INVAlID_ARGUMENT	- If any of msg or file or function are null or line is negative
  * SP_LOGGER_WRITE_FAIL			- If Write failure occurred
  * SP_LOGGER_SUCCESS			- otherwise
@@ -136,7 +136,7 @@ SP_LOGGER_MSG spLoggerPrintError(const char* msg, const char* file,
  * @param function 	- A string representing the function name in which spLoggerPrintWarning call ocurred
  * @param line		- A string representing the line in which the spLoggerPrintWarning call occurred
  * @return
- * SP_LOGGER_UNDIFINED 			- If the logger is undefined
+ * SP_LOGGER_UNDEFINED 			- If the logger is undefined
  * SP_LOGGER_INVAlID_ARGUMENT	- If any of msg or file or function are null or line is negative
  * SP_LOGGER_WRITE_FAIL			- If write failure occurred
  * SP_LOGGER_SUCCESS			- otherwise
@@ -159,7 +159,7 @@ SP_LOGGER_MSG spLoggerPrintWarning(const char* msg, const char* file,
  *
  * @param msg     	- The message to printed
  * @return
- * SP_LOGGER_UNDIFINED 			- If the logger is undefined
+ * SP_LOGGER_UNDEFINED 			- If the logger is undefined
  * SP_LOGGER_INVAlID_ARGUMENT	- If msg is null
  * SP_LOGGER_WRITE_FAIL			- If Write failure occurred
  * SP_LOGGER_SUCCESS			- otherwise
@@ -193,7 +193,7 @@ SP_LOGGER_MSG spLoggerPrintInfo(const char* msg);
  * @param function 	- A string representing the function name in which spLoggerPrintWarning call ocurred
  * @param line		- A string representing the line in which the function call occurred
  * @return
- * SP_LOGGER_UNDIFINED 			- If the logger is undefined
+ * SP_LOGGER_UNDEFINED 			- If the logger is undefined
  * SP_LOGGER_INVAlID_ARGUMENT	- If any of msg or file or function are null or line is negative
  * SP_LOGGER_WRITE_FAIL			- If Write failure occurred
  * SP_LOGGER_SUCCESS			- otherwise
@@ -207,7 +207,7 @@ SP_LOGGER_MSG spLoggerPrintDebug(const char* msg, const char* file,
  *
  * @param msg - The message to be printed
  * @return
- * SP_LOGGER_UNDIFINED 			- If the logger is undefined
+ * SP_LOGGER_UNDEFINED 			- If the logger is undefined
  * SP_LOGGER_INVAlID_ARGUMENT	- If msg is null
  * SP_LOGGER_WRITE_FAIL			- If Write failure occurred
  * SP_LOGGER_SUCCESS			- otherwise

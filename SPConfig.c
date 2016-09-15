@@ -487,18 +487,6 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config) {
 	return SP_CONFIG_SUCCESS;
 }
 
-bool spConfigGetMinimalGuiPreference(const SPConfig config){
-	return config->minimalGUI;
-}
-
-char *spConfigGetLoggerFilename(const SPConfig config){
-	return config->loggerFilename;
-}
-
-SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config){
-	return config->loggerLevel;
-}
-
 SP_CONFIG_MSG spConfigGetImageFeaturesPath(char *featuresPath, const SPConfig config, int index) {
 	if (featuresPath == NULL || config == NULL) {
 		return SP_CONFIG_INVALID_ARGUMENT;
@@ -509,4 +497,23 @@ SP_CONFIG_MSG spConfigGetImageFeaturesPath(char *featuresPath, const SPConfig co
 	sprintf(featuresPath, "%s%s%d%s", config->imagesDirectory, config->imagesPrefix, index, FEATURES_PATH_SUFFIX);
 	return SP_CONFIG_SUCCESS;
 }
+
+char *spConfigGetLoggerFilename(const SPConfig config, SP_CONFIG_MSG* msg) {
+	if (config == NULL) {
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return NULL;
+	}
+	*msg = SP_CONFIG_SUCCESS;
+	return config->loggerFilename;
+}
+
+SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config, SP_CONFIG_MSG* msg) {
+	if (config == NULL) {
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return SP_LOGGER_ERROR_LEVEL;
+	}
+	*msg = SP_CONFIG_SUCCESS;
+	return config->loggerLevel;
+}
+
 
