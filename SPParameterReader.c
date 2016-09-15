@@ -11,12 +11,24 @@
 
 /*** Type declarations ***/
 
-/** Structure containing the kdArray data. */
+/** Structure containing the parameter reader data. */
 struct sp_param_reader_t {
 	FILE *stream;
 	bool hasNext;
 };
 
+
+/*** Private Methods ***/
+
+/**
+ * Adds a given character to a given word, expanding the word memory if needed (multiplying it by 2 every time).
+ *
+ * @param c The character to add.
+ * @param word Pointer to the word
+ * @param workSize Pointer to the current number of characters in the word.
+ * @param wordCapacity The current capacity of the word character array - can change if reallocation is performed.
+ *
+ */
 void addCharacterToWord(char c, char** word, int* wordSize, int* wordCapacity) {
 	if ((*wordSize) >= (*wordCapacity)) {
 		(*wordCapacity) *= 2;
@@ -25,6 +37,8 @@ void addCharacterToWord(char c, char** word, int* wordSize, int* wordCapacity) {
 	(*word)[*wordSize] = c;
 	(*wordSize)++;
 }
+
+/*** Public Methods ***/
 
 SPParameterReader spParameterReaderInit(FILE *stream) {
 	if (stream == NULL) {
