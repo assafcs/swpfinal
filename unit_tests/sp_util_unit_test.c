@@ -126,7 +126,7 @@ static bool spUtilJoinSingleStringTest() {
 }
 
 int main() {
-	printf("Running SPUtilTest..");
+	printf("Running SPUtilTest.. \n");
 	RUN_TEST(spUtilSimpleSplitTest);
 	RUN_TEST(spUtilSplitWithEmptyEdgeStringsTest);
 	RUN_TEST(spUtilSplitSingleDelimiterTest);

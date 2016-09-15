@@ -65,7 +65,7 @@ int loadNumberOfFeatures(FILE *featuresFile, SP_FEATURES_FILE_API_MSG *msg) {
  * 	Otherwise, returns the loaded feature.
  */
 SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_FEATURES_FILE_API_MSG *msg) {
-	int numberOfCoordinates;
+	int i, numberOfCoordinates;
 	char **splitResult;
 	double *data;
 	SPPoint feature;
@@ -95,7 +95,7 @@ SPPoint loadFeature(FILE *featuresFile, int expectedDimension, int index, SP_FEA
 	}
 
 	data = (double *) malloc(numberOfCoordinates * sizeof(double));
-	for (int i = 0; i < numberOfCoordinates; i++) {
+	for (i = 0; i < numberOfCoordinates; i++) {
 		double featureCoordinate = atof(splitResult[i]);
 		if (featureCoordinate == 0 && strcmp(splitResult[i], "0") != 0) {
 			free(data);
