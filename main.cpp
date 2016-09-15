@@ -20,6 +20,18 @@ extern "C" {
 #include "sp_similar_images_search_api.h"
 }
 
+/**
+ * Main SPCBIR implementation
+ *
+ * The SPCBIR basic functionality is to find similar images to a given query image, by searching in
+ * pre-processed data-structure containing different images information (the kd-tree).
+ *
+ */
+
+/*** Constants ***/
+
+/** Different constants for log messages. */
+
 #define NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX "Best candidates for - "
 #define NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX " - are:"
 
@@ -44,6 +56,15 @@ extern "C" {
 
 using namespace sp;
 
+/**
+ * Deallocates the given parameters and logger instance.
+ *
+ * @param config SPConfig instance to destroy.
+ * @param searchTree SPKDTreeNode instance to destroy.
+ * @param currentResultImagePath String to deallocate.
+ * @param filename String to deallocate.
+ * @param imageQueryPath String to deallocate.
+ */
 void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImagePath, char *filename, char *imageQueryPath) {
 	spConfigDestroy(config);
 	spLoggerDestroy();
@@ -53,6 +74,20 @@ void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImageP
 	free(imageQueryPath);
 }
 
+/**
+ * Main Function of SPCBIR.
+ * Creates a kd-tree by the configured parameters, and searches for similar images of user's query paths.
+ *
+ * In the arguments, one can configure a desired configuration file path by using -c flag as follows:
+ * 		./SPCBIR -c myconfig.config
+ * If not configured, the program will use a default value: spcbir.config
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line arguments.
+ *
+ * @return
+ * 	The return code: 1 on failure, 0 on success.
+ */
 int main(int argc, char *argv[]) {
 	char logMSG[LOGGER_MSG_LENGTH] = { '\0' };
 	// init with nulls for destroy methods
