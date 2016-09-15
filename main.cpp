@@ -42,12 +42,10 @@ extern "C" {
 
 using namespace sp;
 
-void freeAll(SPConfig config, SPKDTreeNode searchTree, ImageProc *ip, char *currentResultImagePath,
-		char *filename, char *imageQueryPath) {
+void freeAll(SPConfig config, SPKDTreeNode searchTree, char *currentResultImagePath, char *filename, char *imageQueryPath) {
 	spConfigDestroy(config);
 	spLoggerDestroy();
 	spKDTreeDestroy(searchTree);
-	free(ip);
 	free(currentResultImagePath);
 	free(filename);
 	free(imageQueryPath);
@@ -99,7 +97,7 @@ int main(int argc, char *argv[]) {
 			default:
 				break;
 		}
-		freeAll(config, searchTree, ipPtr, currentResultImagePath, filename, imageQueryPath);
+		freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
 		return 1;
 	}
 
@@ -108,7 +106,7 @@ int main(int argc, char *argv[]) {
 		ipPtr = &ip;
 	} catch (...) {
 		printRErrorMsg(__FILE__, __LINE__, SP_IMAGE_PROC_CREATION_ERROR_MSG);
-		freeAll(config, searchTree, ipPtr, currentResultImagePath, filename, imageQueryPath);
+		freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
 		return 1;
 	}
 
@@ -130,7 +128,7 @@ int main(int argc, char *argv[]) {
 			sprintf(logMSG, "%s, %s %d", TREE_CREATION_FATAL_ERROR_MSG, RETURN_VALUE_MSG, treeCreationMsg);
 			spLoggerPrintDebug(logMSG, __FILE__, __func__, __LINE__);
 			printRErrorMsg(__FILE__, __LINE__, TREE_CREATION_FATAL_ERROR_MSG);
-			freeAll(config, searchTree, ipPtr, currentResultImagePath, filename, imageQueryPath);
+			freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
 			return 1;
 		} else {
 			printf(TREE_CREATION_NON_FATAL_ERROR_MSG);
@@ -142,7 +140,7 @@ int main(int argc, char *argv[]) {
 
 	if (imageQueryPath == NULL || currentResultImagePath == NULL) {
 		printRErrorMsg(__FILE__, __LINE__, ALLOCATION_ERROR_MSG);
-		freeAll(config, searchTree, ipPtr, currentResultImagePath, filename, imageQueryPath);
+		freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
 		return 1;
 	}
 
@@ -186,7 +184,7 @@ int main(int argc, char *argv[]) {
 
 		}
 	}
-	freeAll(config, searchTree, ipPtr, currentResultImagePath, filename, imageQueryPath);
+	freeAll(config, searchTree, currentResultImagePath, filename, imageQueryPath);
 	printf(EXIT_MESSAGE);
 	return 0;
 }
