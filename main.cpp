@@ -33,12 +33,14 @@ extern "C" {
 #define SP_LOGGER_CANNOT_OPEN_FILE_TEXT "The logger output file cannot be opened\n"
 
 #define SP_IMAGE_PROC_CREATION_ERROR_MSG "Could not initialize SPImageProc instance."
+
 #define TREE_CREATION_FATAL_ERROR_MSG "Could not initialize kd-tree properly"
 #define TREE_CREATION_NON_FATAL_ERROR_MSG "KD-Tree was created, but some of the operations did not finish successfully. \n"
 #define TREE_SUCCESSFULLY_CREATE_MSG "KD-Tree was successfully created"
 
 #define QUERY_IMAGE_SEARCH_FAIL_MSG "Similar images search failed for path:"
 #define SHOW_IMAGE_FAIL_MSG "Could not show image at path:"
+#define QUERY_RESULT_COUNT_MSG "Image search complete, the number of results is:"
 
 using namespace sp;
 
@@ -122,7 +124,7 @@ int main(int argc, char *argv[]) {
 	SP_KD_TREE_CREATION_MSG treeCreationMsg;
 	searchTree = spImagesKDTreeCreate(config, func, &treeCreationMsg);
 	if (treeCreationMsg == SP_KD_TREE_CREATION_SUCCESS) {
-		spLoggerPrintDebug(TREE_SUCCESSFULLY_CREATE_MSG, __FILE__, __func__, __LINE__);
+		spLoggerPrintInfo(TREE_SUCCESSFULLY_CREATE_MSG);
 	} else {
 		if (treeCreationMsg != SP_KD_TREE_CREATION_NON_FATAL_ERROR) {
 			sprintf(logMSG, "%s, %s %d", TREE_CREATION_FATAL_ERROR_MSG, RETURN_VALUE_MSG, treeCreationMsg);
@@ -156,6 +158,9 @@ int main(int argc, char *argv[]) {
 			SP_SIMILAR_IMAGES_SEARCH_API_MSG queryMsg;
 			int *similarImages = spFindSimilarImagesIndices(config, imageQueryPath, searchTree, &resultsCount, func, &queryMsg);
 
+			sprintf(logMSG, "%s %d", QUERY_RESULT_COUNT_MSG, resultsCount);
+			spLoggerPrintInfo(logMSG);
+
 			if (queryMsg != SP_SIMILAR_IMAGES_SEARCH_API_SUCCESS) {
 				sprintf(logMSG, "%s %s %s %d", QUERY_IMAGE_SEARCH_FAIL_MSG, imageQueryPath, RETURN_VALUE_MSG, queryMsg);
 				spLoggerPrintError(logMSG, __FILE__, __func__, __LINE__);
@@ -163,7 +168,7 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (!spConfigGetMinimalGuiPreference(config)){
+			if (!spConfigGetMinimalGuiPreference(config)) {
 				printf("%s%s%s\n", NON_MINIMAL_GUI_RESULTS_TITLE_PREFIX, imageQueryPath, NON_MINIMAL_GUI_RESULTS_TITLE_SUFFIX);
 			}
 

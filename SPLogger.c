@@ -24,7 +24,7 @@
 #define NEW_LINE "\n"
 
 
-SP_LOGGER_MSG generalLoggerPrint(const char* header, const char* msg, const char* file,
+SP_LOGGER_MSG generalLoggerPrint(const char* header, SP_LOGGER_LEVEL minLevel, const char* msg, const char* file,
 		const char* function, const int line);
 int loggerDetailLines(const char* header, const char* msg, const char* file, const char* function, const int line);
 int loggerPrintRow(const char* prefix, const char* info);
@@ -77,17 +77,17 @@ void spLoggerDestroy() {
 
 SP_LOGGER_MSG spLoggerPrintError(const char* msg, const char* file,
 		const char* function, const int line) {
-	return generalLoggerPrint(ERROR_HEADER, msg, file, function, line);
+	return generalLoggerPrint(ERROR_HEADER, SP_LOGGER_ERROR_LEVEL, msg, file, function, line);
 }
 
 SP_LOGGER_MSG spLoggerPrintWarning(const char* msg, const char* file,
 		const char* function, const int line) {
-	return generalLoggerPrint(WARNING_HEADER, msg, file, function, line);
+	return generalLoggerPrint(WARNING_HEADER, SP_LOGGER_WARNING_ERROR_LEVEL, msg, file, function, line);
 }
 
 SP_LOGGER_MSG spLoggerPrintDebug(const char* msg, const char* file,
 		const char* function, const int line) {
-	return generalLoggerPrint(DEBUG_HEADER, msg, file, function, line);
+	return generalLoggerPrint(DEBUG_HEADER, SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL, msg, file, function, line);
 }
 
 SP_LOGGER_MSG spLoggerPrintInfo(const char* msg) {
@@ -97,7 +97,7 @@ SP_LOGGER_MSG spLoggerPrintInfo(const char* msg) {
 	if (msg == NULL){
 		return SP_LOGGER_INVAlID_ARGUMENT;
 	}
-	if (logger->level == SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL || logger->level == SP_LOGGER_INFO_WARNING_ERROR_LEVEL){
+	if (logger->level >= SP_LOGGER_INFO_WARNING_ERROR_LEVEL) {
 		int res = loggerPrintText(INFO_HEADER);
 		if (res < 0){
 			return SP_LOGGER_WRITE_FAIL;
@@ -106,6 +106,9 @@ SP_LOGGER_MSG spLoggerPrintInfo(const char* msg) {
 		if (res < 0){
 			return SP_LOGGER_WRITE_FAIL;
 		}
+	}
+	if (!logger->isStdOut) {
+		fflush(logger->outputChannel);
 	}
 	return SP_LOGGER_SUCCESS;
 }
@@ -127,17 +130,15 @@ SP_LOGGER_MSG spLoggerPrintMsg(const char* msg) {
 // In order to reduce code lines, mutual logic of ERROR, WARNING and DEBUG is
 // implemented in one place.
 // This method validates the input and prints whats needed.
-SP_LOGGER_MSG generalLoggerPrint(const char* header, const char* msg, const char* file,
+SP_LOGGER_MSG generalLoggerPrint(const char* header, SP_LOGGER_LEVEL minLevel, const char* msg, const char* file,
 		const char* function, const int line) {
 	if (logger == NULL){
 		return SP_LOGGER_UNDIFINED;
 	}
-	if (msg == NULL || file == NULL || function == NULL || line < 0){
+	if (msg == NULL || file == NULL || function == NULL || line < 0) {
 		return SP_LOGGER_INVAlID_ARGUMENT;
 	}
-	if ((logger->level == SP_LOGGER_ERROR_LEVEL && strcmp(header, ERROR_HEADER) == 0) || (
-			logger->level == SP_LOGGER_WARNING_ERROR_LEVEL && (strcmp(header, WARNING_HEADER) == 0  || strcmp(header, ERROR_HEADER) == 0)) || (
-					logger->level == SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL)){
+	if (logger->level >= minLevel) {
 		int res = loggerDetailLines(header, msg, file, function, line);
 		if (res == 0) {
 			return SP_LOGGER_WRITE_FAIL;

@@ -26,10 +26,10 @@
 
 /** A type used to decide the level of the logger**/
 typedef enum sp_logger_level_t {
-	SP_LOGGER_ERROR_LEVEL, //Error level
-	SP_LOGGER_WARNING_ERROR_LEVEL, //Warning level
-	SP_LOGGER_INFO_WARNING_ERROR_LEVEL, //Info level
-	SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL //Debug level
+	SP_LOGGER_ERROR_LEVEL = 1, //Error level
+	SP_LOGGER_WARNING_ERROR_LEVEL = 2, //Warning level
+	SP_LOGGER_INFO_WARNING_ERROR_LEVEL = 3, //Info level
+	SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL = 4 //Debug level
 } SP_LOGGER_LEVEL;
 
 /** A type used to indicate errors in function calls **/
