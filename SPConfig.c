@@ -76,6 +76,14 @@ static const char IMAGES_PREFIX_BIT_MASK = 0x02;
 static const char IMAGES_SUFFIX_BIT_MASK = 0x04;
 static const char NUM_IMAGES_BIT_MASK = 0x08;
 
+static const SP_LOGGER_LEVEL SP_INT_TO_LOGGER_LEVEL[] = {
+	SP_LOGGER_ERROR_LEVEL, // 0 is not allowed
+	SP_LOGGER_ERROR_LEVEL,
+	SP_LOGGER_WARNING_ERROR_LEVEL,
+	SP_LOGGER_INFO_WARNING_ERROR_LEVEL,
+	SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL
+};
+
 /*** Methods Implementations ***/
 
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg) {
@@ -317,7 +325,7 @@ SP_PARAMETER_PARSE_MSG parseParameter(SPConfig config, char *key, char *value,
 	} else if (strcmp(key, "spLoggerLevel") == 0) {
 		parsedInt = intValue(value, &conversionSucceeded);
 		if (conversionSucceeded && parsedInt >= 1 && parsedInt <= 4) {
-			config->loggerLevel = parsedInt;
+			config->loggerLevel = SP_INT_TO_LOGGER_LEVEL[parsedInt];
 		} else {
 			return SP_PARAMETER_PARSE_INVALID_INTEGER_FORMAT;
 		}

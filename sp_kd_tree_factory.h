@@ -27,11 +27,10 @@
 typedef enum sp_kd_tree_creation_msg_t {
 	SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR,
 	SP_KD_TREE_CREATION_INVALID_ARGUMENT,
-	SP_KD_TREE_CREATION_FEATURE_FILE_MISSING,
 	SP_KD_TREE_CREATION_CONFIG_ERROR,
 	SP_KD_TREE_CREATION_ALLOC_FAIL,
-	SP_KD_TREE_CREATION_WRITE_ERROR,
 	SP_KD_TREE_CREATION_LOAD_ERROR,
+	SP_KD_TREE_CREATION_NON_FATAL_ERROR,
 	SP_KD_TREE_CREATION_SUCCESS
 } SP_KD_TREE_CREATION_MSG;
 
@@ -49,15 +48,16 @@ typedef enum sp_kd_tree_creation_msg_t {
  * @param msg The SP_KD_TREE_CREATION_MSG informing the result of the creation:
  * 		SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR		- In case features were not extracted properly.
  * 		SP_KD_TREE_CREATION_INVALID_ARGUMENT				- In case one of the given parameters is NULL.
- * 		SP_KD_TREE_CREATION_FEATURE_FILE_MISSING			- In case non-extraction mode was set, but feature file was missing.
  * 		SP_KD_TREE_CREATION_CONFIG_ERROR					- In case of a configuration access error.
  * 		SP_KD_TREE_CREATION_ALLOC_FAIL						- In case of allocation failure.
- * 		SP_KD_TREE_CREATION_WRITE_ERROR						- In case features write to file system went wrong (in extraction mode).
  * 		SP_KD_TREE_CREATION_LOAD_ERROR						- In case features load from file system went wrong (in non-extraction mode).
+ * 		SP_KD_TREE_CREATION_NON_FATAL_ERROR					- In case features write to a file went wrong,
+ *														  	  some features could not be extracted (but some did),
+ *														  	  or some features could not be loaded (but some did)
  * 		SP_KD_TREE_CREATION_SUCCESS							- In case kd-tree was created successfully.
  *
  * @return
- * 	NULL in case of a non-successful creation.
+ * 	NULL in case of a non-successful fatal creation.
  * 	Otherwise, returns the created features kd-tree for the configured images.
  */
 SPKDTreeNode spImagesKDTreeCreate(const SPConfig config,

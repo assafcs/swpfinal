@@ -12,15 +12,14 @@
 #include "SPKDArray.h"
 #include "sp_kd_tree_factory.h"
 
-/** Mapping to wrap features file API message with kd-tree creation message. */
-const SP_KD_TREE_CREATION_MSG CREATE_MSG_FOR_FEATURE_API_MSG[] = {
-	SP_KD_TREE_CREATION_INVALID_ARGUMENT,
-	SP_KD_TREE_CREATION_FEATURE_FILE_MISSING,
-	SP_KD_TREE_CREATION_ALLOC_FAIL,
-	SP_KD_TREE_CREATION_WRITE_ERROR,
-	SP_KD_TREE_CREATION_LOAD_ERROR,
-	SP_KD_TREE_CREATION_SUCCESS
-};
+/*** Constants ***/
+
+/** Different log messages defines. */
+#define FEATURE_EXTRACTION_FAILURE_MSG "Could not extract features for image at path:"
+#define FEATURES_WRITE_FAILURE_MSG "Could not write features to file:"
+#define FEATURES_LOAD_FAILURE_MSG "Could not load features from file:"
+#define FILE_DOESNT_EXISTS_MSG "File does not exist at path:"
+
 
 /*** Private Methods ***/
 
@@ -51,15 +50,17 @@ void destroyVariables(SPPoint *allFeatures, int totalFeaturesCount, char *imageP
  * @param msg SP_KD_TREE_CREATION_MSG informing the load result:
  * 		SP_KD_TREE_CREATION_CONFIG_ERROR			- In case of a configuration access error.
  * 		SP_KD_TREE_CREATION_ALLOC_FAIL				- In case of allocation failure.
- *		SP_KD_TREE_CREATION_FEATURE_FILE_MISSING 	- In case a features file was missing
- *		SP_KD_TREE_CREATION_LOAD_ERROR				- In case loading features from a file went wrong.
+ *		SP_KD_TREE_CREATION_NON_FATAL_ERROR			- In case a single features file load went wrong.
+ *		SP_KD_TREE_CREATION_LOAD_ERROR				- In case all features loading from a file went wrong.
  *		SP_KD_TREE_CREATION_SUCCESS					- In case all features were successfully loaded.
  *
  * @return
- * 	NULL in case of a non-successful load.
+ * 	NULL in case of a non-successful fatal load.
  * 	Otherwise, returns the loaded features.
  */
 SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREATION_MSG *msg) {
+	char loggerMSG[LOGGER_MSG_LENGTH] = { '\0' };
+	*msg = SP_KD_TREE_CREATION_SUCCESS;
 	char *featuresPath = NULL;
 	SPPoint *allFeatures = NULL;
 	SP_CONFIG_MSG resultMSG;
@@ -94,9 +95,12 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 		SP_FEATURES_FILE_API_MSG featuresAPIMsg;
 		SPPoint *features = spFeaturesFileAPILoad(featuresPath, imageIndex, expectedDimension, &numOfFeaturesLoaded, &featuresAPIMsg);
 		if (featuresAPIMsg != SP_FEATURES_FILE_API_SUCCESS) {
-			destroyVariables(allFeatures, totalFeaturesCount, NULL, featuresPath);
-			*msg = CREATE_MSG_FOR_FEATURE_API_MSG[featuresAPIMsg];
-			return NULL;
+			sprintf(loggerMSG, "%s %s, %s %d", FEATURES_LOAD_FAILURE_MSG, featuresPath, RETURN_VALUE_MSG, featuresAPIMsg);
+			spLoggerPrintDebug(loggerMSG, __FILE__, __func__, __LINE__);
+			sprintf(loggerMSG, "%s %s", FEATURES_LOAD_FAILURE_MSG, featuresPath);
+			spLoggerPrintWarning(loggerMSG, __FILE__, __func__, __LINE__);
+			*msg = SP_KD_TREE_CREATION_NON_FATAL_ERROR;
+			continue;
 		}
 
 		totalFeaturesCount += numOfFeaturesLoaded;
@@ -117,7 +121,12 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
 
 	free(featuresPath);
 	*numberOfFeatures = totalFeaturesCount;
-	*msg = SP_KD_TREE_CREATION_SUCCESS;
+	if (totalFeaturesCount == 0) {
+		// In case no features were loaded, return error.
+		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
+		*msg = SP_KD_TREE_CREATION_LOAD_ERROR;
+		return NULL;
+	}
 	return allFeatures;
 }
 
@@ -130,17 +139,20 @@ SPPoint *loadAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREA
  * @param msg SP_KD_TREE_CREATION_MSG informing the extraction result:
  * 		SP_KD_TREE_CREATION_CONFIG_ERROR				- In case of a configuration access error.
  * 		SP_KD_TREE_CREATION_ALLOC_FAIL					- In case of allocation failure.
- *		SP_KD_TREE_CREATION_WRITE_ERROR					- In case writing features to a file went wrong.
- *		SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR	- In case features extraction went wrong.
+ *		SP_KD_TREE_CREATION_NON_FATAL_ERROR				- In case features write to a file went wrong,
+ *														  or some features could not be extracted (but some did)
+ *		SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR	- In case all features extraction went wrong.
  *		SP_KD_TREE_CREATION_SUCCESS						- In case all features were successfully extracted and written.
  * @param featureExactionFunction The function used to extract image features.
  *
  * @return
- * 	NULL in case of a non-successful extraction/write.
+ * 	NULL in case of a non-successful fatal extraction.
  * 	Otherwise, returns the extracted features an one array.
  */
 SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_CREATION_MSG *msg,
 		 FeatureExractionFunction featureExactionFunction) {
+	*msg = SP_KD_TREE_CREATION_SUCCESS;
+	char loggerMSG[LOGGER_MSG_LENGTH] = { '\0' };
 	char *imagePath = NULL, *featuresPath = NULL;
 	SPPoint *allFeatures = NULL, *features = NULL;
 	SP_CONFIG_MSG resultMSG;
@@ -167,20 +179,23 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 			*msg = SP_KD_TREE_CREATION_CONFIG_ERROR;
 			return NULL;
 		}
+
 		features = featureExactionFunction(imagePath, imageIndex, &numOfFeaturesExtracted);
 		if (features == NULL || numOfFeaturesExtracted <= 0) {
-			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			*msg = SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
-			return NULL;
+			sprintf(loggerMSG, "%s %s", FEATURE_EXTRACTION_FAILURE_MSG, imagePath);
+			spLoggerPrintWarning(loggerMSG, __FILE__, __func__, __LINE__);
+			*msg = SP_KD_TREE_CREATION_NON_FATAL_ERROR;
+			continue;
 		}
 
 		featuresFileAPIMsg = spFeaturesFileAPIWrite(featuresPath, features, numOfFeaturesExtracted);
 
 		if (featuresFileAPIMsg != SP_FEATURES_FILE_API_SUCCESS) {
-			destroyVariables(allFeatures, totalFeaturesCount, imagePath, featuresPath);
-			spKDArrayFreePointsArray(features, numOfFeaturesExtracted);
-			*msg = CREATE_MSG_FOR_FEATURE_API_MSG[featuresFileAPIMsg];
-			return NULL;
+			sprintf(loggerMSG, "%s %s, %s %d", FEATURES_LOAD_FAILURE_MSG, featuresPath, RETURN_VALUE_MSG, featuresFileAPIMsg);
+			spLoggerPrintDebug(loggerMSG, __FILE__, __func__, __LINE__);
+			sprintf(loggerMSG, "%s %s", FEATURES_WRITE_FAILURE_MSG, featuresPath);
+			spLoggerPrintWarning(loggerMSG, __FILE__, __func__, __LINE__);
+			*msg = SP_KD_TREE_CREATION_NON_FATAL_ERROR;
 		}
 
 		totalFeaturesCount += numOfFeaturesExtracted;
@@ -201,7 +216,14 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
 	free(imagePath);
 	free(featuresPath);
 	*numberOfFeatures = totalFeaturesCount;
-	*msg = SP_KD_TREE_CREATION_SUCCESS;
+
+	if (totalFeaturesCount == 0) {
+		// In case no features were extracted, return error.
+		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
+		*msg = SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR;
+		return NULL;
+	}
+
 	return allFeatures;
 }
 
@@ -214,10 +236,11 @@ SPPoint *extractAllFeatures(SPConfig config, int *numberOfFeatures, SP_KD_TREE_C
  * @param msg SP_KD_TREE_CREATION_MSG informing the extraction result:
  * 		SP_KD_TREE_CREATION_CONFIG_ERROR				- In case of a configuration access error.
  * 		SP_KD_TREE_CREATION_ALLOC_FAIL					- In case of allocation failure.
- * 		SP_KD_TREE_CREATION_FEATURE_FILE_MISSING 		- In case a features file was missing
  *		SP_KD_TREE_CREATION_LOAD_ERROR					- In case loading features from a file went wrong.
- *		SP_KD_TREE_CREATION_WRITE_ERROR					- In case writing features to a file went wrong.
- *		SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR	- In case features extraction went wrong.
+ *		SP_KD_TREE_CREATION_NON_FATAL_ERROR				- In case features write to a file went wrong,
+ *														  some features could not be extracted (but some did),
+ *														  or some features could not be loaded (but some did)
+ *		SP_KD_TREE_CREATION_FEATURES_EXTRACTION_ERROR	- In case all features extraction went wrong.
  *		SP_KD_TREE_CREATION_SUCCESS						- In case all features were successfully extracted and written.
  * @param featureExactionFunction The function used to extract image features if needed.
  *
@@ -257,7 +280,7 @@ SPKDTreeNode spImagesKDTreeCreate(const SPConfig config,
 		return NULL;
 	}
 	allFeatures = getAllFeatures(config, &totalFeaturesCount, msg, featureExtractionFunction);
-	if (allFeatures == NULL || totalFeaturesCount <= 0 || *msg != SP_KD_TREE_CREATION_SUCCESS) {
+	if (allFeatures == NULL || totalFeaturesCount <= 0 || (*msg != SP_KD_TREE_CREATION_SUCCESS && *msg != SP_KD_TREE_CREATION_NON_FATAL_ERROR)) {
 		destroyVariables(allFeatures, totalFeaturesCount, NULL, NULL);
 		return NULL;
 	}

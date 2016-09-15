@@ -139,9 +139,12 @@ SP_LOGGER_MSG generalLoggerPrint(const char* header, const char* msg, const char
 			logger->level == SP_LOGGER_WARNING_ERROR_LEVEL && (strcmp(header, WARNING_HEADER) == 0  || strcmp(header, ERROR_HEADER) == 0)) || (
 					logger->level == SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL)){
 		int res = loggerDetailLines(header, msg, file, function, line);
-		if (res == 0){
+		if (res == 0) {
 			return SP_LOGGER_WRITE_FAIL;
 		}
+	}
+	if (!logger->isStdOut) {
+		fflush(logger->outputChannel);
 	}
 	return SP_LOGGER_SUCCESS;
 }
@@ -150,23 +153,23 @@ SP_LOGGER_MSG generalLoggerPrint(const char* header, const char* msg, const char
 // Method for printing in the assignment required format
 int loggerDetailLines(const char* header, const char* msg, const char* file, const char* function, const int line) {
 	int res = loggerPrintText(header);
-	if (res < 0){
+	if (res < 0) {
 		return 0;
 	}
 	res = loggerPrintRow(FILE_ROW_PREFIX, file);
-	if (res < 0){
+	if (res < 0) {
 		return 0;
 	}
 	res = loggerPrintRow(FUNCTION_ROW_PREFIX, function);
-	if (res < 0){
+	if (res < 0) {
 		return 0;
 	}
 	res = loggerPrintLine(LINE_ROW_PREFIX, line);
-	if (res < 0){
+	if (res < 0) {
 		return 0;
 	}
 	res = loggerPrintRow(MSG_ROW_PREFIX, msg);
-	if (res < 0){
+	if (res < 0) {
 		return 0;
 	}
 	return 1;

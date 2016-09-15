@@ -35,4 +35,10 @@ typedef SPPoint *(*FeatureExractionFunction)(const char *, int, int *);
 /** Maximum size for a path to be used in different scenarios. */
 static const int MAX_PATH_LENGTH = 100;
 
+/** Length of a logger message. */
+#define LOGGER_MSG_LENGTH 2048
+
+/** General logger message to report return value of a function call. */
+#define RETURN_VALUE_MSG "return message value:"
+
 #endif /* SP_CONSTANTS_H_ */
